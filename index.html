@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Halaman Ujian — Peserta</title>
-<!-- Firestore SDK (modular compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,7 +21,6 @@
   }
   body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; }
 
-  /* ── LOGIN SCREEN ── */
   .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 50%, #ecfdf5 100%); overflow-y: auto; }
   .login-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 440px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
   .login-logo { text-align: center; margin-bottom: 24px; }
@@ -89,7 +87,6 @@
   .db-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; animation: pulse 1.5s ease infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-  /* ── EXAM SCREEN ── */
   .exam-screen { display: none; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
 
   .exam-header { background: var(--white); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 50; transition: max-height .35s cubic-bezier(.4,0,.2,1); overflow: hidden; }
@@ -158,7 +155,7 @@
 </head>
 <body>
 
-<!-- ══ LOGIN SCREEN ══ -->
+<!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">
@@ -249,7 +246,7 @@
   </div>
 </div>
 
-<!-- ══ EXAM SCREEN ══ -->
+<!-- EXAM SCREEN -->
 <div class="exam-screen" id="examScreen">
   <header class="exam-header" id="examHeader">
     <div class="header-collapsed-bar">
@@ -315,7 +312,7 @@
 
 <script>
   /* ══════════════════════════════════════════
-     FIREBASE CONFIG — FIRESTORE
+     FIREBASE CONFIG
   ══════════════════════════════════════════ */
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyCQuIw5-2y12-79gPry_wsPNrzFEtR5NQE",
@@ -340,190 +337,175 @@
   db = firebaseApp.firestore();
 
   /* ══════════════════════════════════════════
-     ESCALATING BACKGROUND AUDIO ALERT SYSTEM
-     Berjalan di background saat tab disembunyikan.
-     Volume naik setiap 0.5 detik sampai maksimal.
+     AUDIO SYSTEM — MOBILE-COMPATIBLE
+     Volume naik setiap 500ms dari 0.05 → 1.0
   ══════════════════════════════════════════ */
-  let _audioCtx         = null;
-  let _gainNode         = null;
-  let _alertActive      = false;   // apakah alert sedang berjalan
-  let _alertVolume      = 0.05;    // volume awal (5%)
-  let _alertMaxVolume   = 1.0;     // volume maksimal
-  let _alertVolumeStep  = 0.08;    // kenaikan volume per langkah
-  let _alertInterval    = null;    // interval untuk menaikkan volume & ulangi TTS
-  let _ttsLoopInterval  = null;    // interval khusus pengulangan TTS
+  let _audioCtx        = null;
+  let _masterGain      = null;
+  let _audioUnlocked   = false;
 
-  /**
-   * Inisialisasi AudioContext — harus dipanggil dari gesture user
-   * agar browser mengizinkan audio autoplay.
-   */
-  function unlockAudio() {
-    try {
-      if (!_audioCtx) {
-        _audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
-        _gainNode  = _audioCtx.createGain();
-        _gainNode.gain.value = 0.0001;
-        _gainNode.connect(_audioCtx.destination);
+  /* Alert state */
+  let _alertActive     = false;
+  let _alertVolume     = 0.05;   // mulai dari volume kecil
+  let _alertStep       = 0.05;   // naik 0.05 setiap 500ms → penuh dalam ~10 detik
+  let _alertEscTimer   = null;   // interval eskalasi volume 500ms
+  let _alertBeepTimer  = null;   // interval bunyi beep
+  let _alertTtsTimer   = null;   // interval TTS loop
+
+  /* ── Inisialisasi / unlock AudioContext (wajib dari interaksi user) ── */
+  function _initAudio() {
+    if (_audioCtx) {
+      /* Jika sudah ada tapi suspended (umum di iOS), resume */
+      if (_audioCtx.state === 'suspended') {
+        _audioCtx.resume().catch(() => {});
       }
-      if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(()=>{});
+      return;
+    }
+    try {
+      _audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+      _masterGain = _audioCtx.createGain();
+      _masterGain.gain.value = 0.0001;
+      _masterGain.connect(_audioCtx.destination);
 
-      // Buffer kosong untuk unlock
-      const buf = _audioCtx.createBuffer(1, 1, 22050);
-      const src = _audioCtx.createBufferSource();
-      src.buffer = buf; src.connect(_gainNode); src.start(0);
+      /* Putar buffer kosong agar iOS izinkan audio */
+      const silBuf = _audioCtx.createBuffer(1, 1, _audioCtx.sampleRate);
+      const silSrc = _audioCtx.createBufferSource();
+      silSrc.buffer = silBuf;
+      silSrc.connect(_masterGain);
+      silSrc.start(0);
 
-      // Diam agar AudioContext tetap 'running'
-      const silOsc  = _audioCtx.createOscillator();
-      const silGain = _audioCtx.createGain();
-      silGain.gain.value = 0.00001;
-      silOsc.connect(silGain); silGain.connect(_gainNode);
-      silOsc.frequency.value = 1; silOsc.start();
-    } catch(e) { console.warn('unlockAudio:', e); }
+      _audioUnlocked = true;
+    } catch (e) {
+      console.warn('_initAudio error:', e);
+    }
+  }
 
-    // Preload voices
+  /* Dipanggil dari setiap interaksi user — unlock audio di iOS */
+  function unlockAudio() {
+    _initAudio();
+    /* Unlock TTS engine juga */
     try {
       window.speechSynthesis.cancel();
       const wu = new SpeechSynthesisUtterance('');
       wu.volume = 0;
       window.speechSynthesis.speak(wu);
-    } catch(e) {}
+    } catch (e) {}
   }
 
-  /**
-   * Mulai alert eskalasi:
-   * - Bicara "ANDA MEMBUKA APLIKASI LAIN" setiap 2 detik
-   * - Volume naik setiap 0.5 detik
-   * - Terus berjalan sampai stopEscalatingAlert() dipanggil
-   */
-  function startEscalatingAlert() {
-    if (_alertActive) return;          // jangan double-start
-    _alertActive     = true;
-    _alertVolume     = 0.05;           // reset ke volume awal
-
-    // Resume AudioContext jika suspended
-    if (_audioCtx && _audioCtx.state === 'suspended') {
-      _audioCtx.resume().catch(()=>{});
-    }
-
-    // ── Langkah 1: Bicara langsung sekarang ──
-    _speakAlertNow(_alertVolume);
-
-    // ── Langkah 2: Naikkan volume setiap 0.5 detik ──
-    _alertInterval = setInterval(() => {
-      if (!_alertActive) { clearInterval(_alertInterval); return; }
-
-      _alertVolume = Math.min(_alertVolume + _alertVolumeStep, _alertMaxVolume);
-
-      // Update gainNode AudioContext
-      if (_gainNode) {
-        _gainNode.gain.setTargetAtTime(_alertVolume * 10, _audioCtx.currentTime, 0.05);
-      }
-    }, 500);
-
-    // ── Langkah 3: Ulangi TTS setiap 2 detik ──
-    _ttsLoopInterval = setInterval(() => {
-      if (!_alertActive) { clearInterval(_ttsLoopInterval); return; }
-      _speakAlertNow(_alertVolume);
-    }, 2000);
-  }
-
-  /**
-   * Hentikan semua alert saat siswa kembali ke tab.
-   */
-  function stopEscalatingAlert() {
-    _alertActive = false;
-
-    clearInterval(_alertInterval);
-    clearInterval(_ttsLoopInterval);
-    _alertInterval   = null;
-    _ttsLoopInterval = null;
-
-    // Hentikan TTS yang sedang berjalan
-    try { window.speechSynthesis.cancel(); } catch(e) {}
-
-    // Turunkan volume gainNode kembali ke nol pelan-pelan
-    if (_gainNode && _audioCtx) {
-      _gainNode.gain.setTargetAtTime(0.0001, _audioCtx.currentTime, 0.3);
-    }
-  }
-
-  /**
-   * Langsung ucapkan peringatan dengan volume saat ini.
-   * Menggunakan SpeechSynthesis + sinyal beep AudioContext.
-   */
-  function _speakAlertNow(vol) {
-    // ── Beep AudioContext ──
-    if (_audioCtx && _gainNode) {
-      try {
-        const osc  = _audioCtx.createOscillator();
-        const gain = _audioCtx.createGain();
-        gain.gain.setValueAtTime(vol * 8, _audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.25);
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(880, _audioCtx.currentTime);
-        osc.connect(gain);
-        gain.connect(_audioCtx.destination);
-        osc.start(_audioCtx.currentTime);
-        osc.stop(_audioCtx.currentTime + 0.25);
-      } catch(e) {}
-    }
-
-    // ── TTS (Web Speech API) ──
-    try {
-      window.speechSynthesis.cancel();
-
-      const utterance     = new SpeechSynthesisUtterance('ANDA MEMBUKA APLIKASI LAIN');
-      utterance.lang      = 'id-ID';
-      utterance.volume    = Math.min(vol + 0.1, 1.0); // langsung pakai vol saat ini
-      utterance.rate      = 0.80;
-      utterance.pitch     = 1.2;
-
-      // Pilih suara bahasa Indonesia jika tersedia
-      const voices = window.speechSynthesis.getVoices();
-      const idVoice = voices.find(v => v.lang.startsWith('id')) ||
-                      voices.find(v => v.lang.startsWith('ms'));
-      if (idVoice) utterance.voice = idVoice;
-
-      utterance.onerror = () => {};
-      window.speechSynthesis.speak(utterance);
-    } catch(e) {}
-  }
-
-  /* ── Legacy helper untuk peringatan satu kali (tetap dipakai di showWarning) ── */
-  function boostAndSpeak(text) {
-    if (_audioCtx) {
-      if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(()=>{});
-      try {
-        const sr   = _audioCtx.sampleRate;
-        const buf  = _audioCtx.createBuffer(1, Math.floor(sr * .08), sr);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.0002;
-        const burst = _audioCtx.createBufferSource();
-        const bGain = _audioCtx.createGain();
-        bGain.gain.value = 8.0;
-        burst.buffer = buf; burst.connect(bGain); bGain.connect(_gainNode || _audioCtx.destination); burst.start();
-      } catch(e) {}
+  /* ── Mainkan satu beep pendek dengan volume tertentu ── */
+  function _playBeep(volume) {
+    if (!_audioCtx) return;
+    if (_audioCtx.state === 'suspended') {
+      _audioCtx.resume().catch(() => {});
+      return; /* beep berikutnya akan bermain setelah resume */
     }
     try {
+      const now  = _audioCtx.currentTime;
+      const osc  = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(660, now + 0.12);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(volume, now + 0.02);
+      gain.gain.setValueAtTime(volume, now + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
+
+      osc.connect(gain);
+      gain.connect(_audioCtx.destination); /* langsung ke destination, tidak lewat masterGain */
+      osc.start(now);
+      osc.stop(now + 0.31);
+    } catch (e) {}
+  }
+
+  /* ── TTS dengan volume & bahasa Indonesia ── */
+  function _speakTTS(text, volume) {
+    if (!window.speechSynthesis) return;
+    try {
       window.speechSynthesis.cancel();
-      let attempt = 0;
-      const trySpeak = () => {
-        const u  = new SpeechSynthesisUtterance(text);
-        u.lang   = 'id-ID'; u.volume = 1; u.rate = 0.85; u.pitch = 1.1;
-        const voices = window.speechSynthesis.getVoices();
-        const idV    = voices.find(v => v.lang.startsWith('id'));
-        if (idV) u.voice = idV;
-        u.onerror = () => { if (attempt < 2) { attempt++; setTimeout(trySpeak, 400); } };
+      const u  = new SpeechSynthesisUtterance(text);
+      u.lang   = 'id-ID';
+      u.volume = Math.min(volume + 0.2, 1.0); /* TTS sedikit lebih keras */
+      u.rate   = 0.85;
+      u.pitch  = 1.1;
+      u.onerror = () => {};
+
+      const applyVoice = () => {
+        const voices  = window.speechSynthesis.getVoices();
+        const idVoice = voices.find(v => v.lang.startsWith('id')) ||
+                        voices.find(v => v.lang.startsWith('ms'));
+        if (idVoice) u.voice = idVoice;
         window.speechSynthesis.speak(u);
       };
+
       if (window.speechSynthesis.getVoices().length === 0) {
-        window.speechSynthesis.addEventListener('voiceschanged', trySpeak, { once: true });
-        setTimeout(trySpeak, 600);
-      } else trySpeak();
-    } catch(e) {}
+        window.speechSynthesis.addEventListener('voiceschanged', applyVoice, { once: true });
+        setTimeout(applyVoice, 500);
+      } else {
+        applyVoice();
+      }
+    } catch (e) {}
   }
 
-  function speakAlert(text) { boostAndSpeak(text); }
+  /* ── TTS saat tombol ditekan (sekali, volume penuh) ── */
+  function speakOnBtn(text) {
+    _initAudio();
+    _speakTTS(text, 1.0);
+  }
+
+  /* ══════════════════════════════════════════
+     ESKALASI ALERT — volume naik tiap 500ms
+  ══════════════════════════════════════════ */
+  function startEscalatingAlert() {
+    if (_alertActive) return;
+    _alertActive  = true;
+    _alertVolume  = 0.05; /* reset ke volume awal */
+
+    /* Pastikan AudioContext aktif */
+    if (_audioCtx && _audioCtx.state === 'suspended') {
+      _audioCtx.resume().catch(() => {});
+    }
+
+    /* ── 1. Eskalasi volume setiap 500ms ── */
+    _alertEscTimer = setInterval(() => {
+      if (!_alertActive) { clearInterval(_alertEscTimer); return; }
+      _alertVolume = Math.min(_alertVolume + _alertStep, 1.0);
+    }, 500);
+
+    /* ── 2. Beep setiap 600ms menggunakan volume yang sudah naik ── */
+    _playBeep(_alertVolume); /* beep pertama langsung */
+    _alertBeepTimer = setInterval(() => {
+      if (!_alertActive) { clearInterval(_alertBeepTimer); return; }
+      _playBeep(_alertVolume);
+    }, 600);
+
+    /* ── 3. TTS loop setiap 2.5 detik ── */
+    _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+    _alertTtsTimer = setInterval(() => {
+      if (!_alertActive) { clearInterval(_alertTtsTimer); return; }
+      _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+    }, 2500);
+  }
+
+  function stopEscalatingAlert() {
+    _alertActive = false;
+    clearInterval(_alertEscTimer);
+    clearInterval(_alertBeepTimer);
+    clearInterval(_alertTtsTimer);
+    _alertEscTimer  = null;
+    _alertBeepTimer = null;
+    _alertTtsTimer  = null;
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+  }
+
+  /* ── speakAlert: dipanggil untuk peringatan satu kali (bukan loop) ── */
+  function speakAlert(text) {
+    _initAudio();
+    _playBeep(0.9);
+    setTimeout(() => _speakTTS(text, 1.0), 150);
+  }
 
   /* ══════════════════════════════════════════
      STEP 1 — ROOM CODE
@@ -542,6 +524,8 @@
     const code = document.getElementById('inputRoomCode').value.trim().toUpperCase();
     if (!code || code.length < 4) return;
 
+    speakOnBtn('Memeriksa kode room');
+
     const btn = document.getElementById('btnCekRoom');
     btn.disabled = true; btn.textContent = 'Memeriksa...';
 
@@ -554,18 +538,21 @@
         document.getElementById('foundRoomUrl').textContent  = foundRoomData.examUrl || '(URL akan dimuat saat ujian)';
         document.getElementById('roomInfoBox').classList.add('show');
         document.getElementById('errBox').classList.remove('show');
+        speakOnBtn('Room ditemukan, silakan lanjutkan');
         setTimeout(lanjutKeStep2, 600);
       } else {
         document.getElementById('errBox').textContent = 'Kode room tidak ditemukan. Periksa kode dan coba lagi.';
         document.getElementById('errBox').classList.add('show');
         document.getElementById('roomInfoBox').classList.remove('show');
         foundRoomData = null;
+        speakOnBtn('Kode room tidak ditemukan, coba lagi');
         btn.disabled = false; btn.textContent = 'Cek & Lanjutkan →';
       }
     } catch(e) {
       console.error(e);
       document.getElementById('errBox').textContent = 'Terjadi kesalahan koneksi. Coba lagi.';
       document.getElementById('errBox').classList.add('show');
+      speakOnBtn('Kesalahan koneksi, coba lagi');
       btn.disabled = false; btn.textContent = 'Cek & Lanjutkan →';
     }
   }
@@ -579,9 +566,11 @@
     document.getElementById('stepLine1').className  = 'step-line done';
     document.getElementById('step2Num').className   = 'step-num active';
     document.getElementById('step2Label').className = 'step-label active';
+    speakOnBtn('Silakan isi data diri kamu');
   }
 
   function kembaliKeStep1() {
+    speakOnBtn('Kembali ke halaman kode room');
     document.getElementById('formStep2').classList.remove('active');
     document.getElementById('formStep1').classList.add('active');
     document.getElementById('step1Num').className   = 'step-num active';
@@ -598,16 +587,19 @@
      STEP 2 — DATA DIRI & MULAI UJIAN
   ══════════════════════════════════════════ */
   function mulaiUjian() {
-    unlockAudio();   // ← unlock AudioContext dari gesture klik ini
+    unlockAudio(); /* WAJIB dipanggil dari interaksi user agar iOS izinkan audio */
+
     const nama    = document.getElementById('inputNama').value.trim();
     const id      = document.getElementById('inputId').value.trim();
     const kelas   = document.getElementById('inputKelas').value;
     const ruangan = document.getElementById('inputRuangan').value;
 
-    if (!nama || !id)   { alert('Mohon isi nama dan nomor peserta.'); return; }
-    if (!kelas)         { alert('Mohon pilih kelas.'); return; }
-    if (!ruangan)       { alert('Mohon pilih ruangan.'); return; }
+    if (!nama || !id)   { speakOnBtn('Mohon isi nama dan nomor peserta'); alert('Mohon isi nama dan nomor peserta.'); return; }
+    if (!kelas)         { speakOnBtn('Mohon pilih kelas'); alert('Mohon pilih kelas.'); return; }
+    if (!ruangan)       { speakOnBtn('Mohon pilih ruangan'); alert('Mohon pilih ruangan.'); return; }
     if (!foundRoomData) { alert('Data room tidak valid. Kembali ke langkah 1.'); return; }
+
+    speakOnBtn('Ujian dimulai, selamat mengerjakan');
 
     pesertaNama    = nama;
     pesertaId      = id;
@@ -684,7 +676,7 @@
     const indicator = document.getElementById('statusIndicator');
     const text      = document.getElementById('statusText');
     indicator.className = 'status-indicator full';
-    if (status === 'aman')   { indicator.classList.add('aman');    text.textContent = 'Sedang Ujian'; }
+    if (status === 'aman')        { indicator.classList.add('aman');    text.textContent = 'Sedang Ujian'; }
     else if (status === 'tab')    { indicator.classList.add('warning'); text.textContent = 'Buka Tab Lain'; }
     else if (status === 'keluar') { indicator.classList.add('danger');  text.textContent = 'Keluar Halaman'; }
 
@@ -724,25 +716,24 @@
   }
 
   /* ══════════════════════════════════════════
-     MONITORING + ESCALATING ALERT INTEGRATION
+     MONITORING
   ══════════════════════════════════════════ */
   function setupMonitoring() {
-
-    /* ── Deteksi tab disembunyikan / dibuka kembali ── */
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        // Siswa berpindah tab atau aplikasi
         updateStatus('tab');
         addViolation('tab');
-        startEscalatingAlert();   // ← mulai suara eskalasi di background
+        startEscalatingAlert();
       } else {
-        // Siswa kembali ke tab ujian
         updateStatus('aman');
-        stopEscalatingAlert();    // ← hentikan semua suara
+        stopEscalatingAlert();
+        /* Resume AudioContext setelah kembali ke tab (penting untuk iOS) */
+        if (_audioCtx && _audioCtx.state === 'suspended') {
+          _audioCtx.resume().catch(() => {});
+        }
       }
     });
 
-    /* ── Deteksi kehilangan fokus window (alt-tab, klik taskbar, dll.) ── */
     let iframeHasFocus = false;
     document.getElementById('examFrame').addEventListener('mouseenter', () => { iframeHasFocus = true; });
     document.getElementById('examFrame').addEventListener('mouseleave', () => { iframeHasFocus = false; });
@@ -754,7 +745,7 @@
         } else {
           updateStatus('keluar');
           addViolation('keluar');
-          startEscalatingAlert();   // ← mulai suara eskalasi
+          startEscalatingAlert();
         }
       }
     });
@@ -762,10 +753,20 @@
     window.addEventListener('focus', () => {
       iframeHasFocus = false;
       updateStatus('aman');
-      stopEscalatingAlert();        // ← hentikan suara saat kembali
+      stopEscalatingAlert();
+      /* Resume AudioContext saat window kembali fokus */
+      if (_audioCtx && _audioCtx.state === 'suspended') {
+        _audioCtx.resume().catch(() => {});
+      }
     });
 
-    /* ── Sebelum halaman ditutup ── */
+    /* Tap/klik di halaman ujian → resume AudioContext (penting untuk iOS) */
+    document.addEventListener('touchstart', () => {
+      if (_audioCtx && _audioCtx.state === 'suspended') {
+        _audioCtx.resume().catch(() => {});
+      }
+    }, { passive: true });
+
     window.addEventListener('beforeunload', (e) => {
       stopEscalatingAlert();
       if (pesertaDocRef) {
@@ -778,7 +779,6 @@
       return e.returnValue;
     });
 
-    /* ── Blokir klik kanan, copy, paste, shortcut DevTools ── */
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('copy',  e => e.preventDefault());
     document.addEventListener('paste', e => e.preventDefault());
@@ -800,6 +800,10 @@
       const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
       const s = (timerSeconds % 60).toString().padStart(2, '0');
       document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+
+      if (timerSeconds === 300)  speakOnBtn('Perhatian, waktu ujian tersisa lima menit');
+      if (timerSeconds === 60)   speakOnBtn('Waktu ujian tersisa satu menit');
+
       if (timerSeconds <= 300) document.getElementById('timerBadgeSm').classList.add('danger');
       if (timerSeconds <= 0)  { clearInterval(timerInterval); selesai(); }
     }, 1000);
@@ -807,6 +811,7 @@
 
   async function selesai() {
     stopEscalatingAlert();
+    speakOnBtn('Waktu ujian habis, terima kasih');
     if (pesertaDocRef) {
       try {
         await pesertaDocRef.update({ status:'selesai', lastUpdate: firebase.firestore.FieldValue.serverTimestamp() });
@@ -821,6 +826,7 @@
   function toggleHeader() {
     const header   = document.getElementById('examHeader');
     const expanded = !header.classList.contains('collapsed');
+    speakOnBtn(expanded ? 'Menu ditutup' : 'Menu dibuka');
     if (expanded) { header.classList.add('collapsed'); header.style.maxHeight = ''; }
     else { header.style.maxHeight = header.scrollHeight + 'px'; header.classList.remove('collapsed'); }
   }
