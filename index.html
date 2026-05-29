@@ -333,48 +333,196 @@
   let roomCode='', roomName='', examUrl='';
   let violations=0, timerSeconds=90*60, timerInterval;
   let foundRoomData = null;
-  // Firestore document key untuk peserta (dibuat saat mulai ujian)
   let pesertaDocId = '';
 
   /* ── INIT FIREBASE ── */
   firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
   db = firebaseApp.firestore();
 
-  /* ── AUDIO ── */
-  let _audioCtx=null, _gainNode=null;
+  /* ══════════════════════════════════════════
+     ESCALATING BACKGROUND AUDIO ALERT SYSTEM
+     Berjalan di background saat tab disembunyikan.
+     Volume naik setiap 0.5 detik sampai maksimal.
+  ══════════════════════════════════════════ */
+  let _audioCtx         = null;
+  let _gainNode         = null;
+  let _alertActive      = false;   // apakah alert sedang berjalan
+  let _alertVolume      = 0.05;    // volume awal (5%)
+  let _alertMaxVolume   = 1.0;     // volume maksimal
+  let _alertVolumeStep  = 0.08;    // kenaikan volume per langkah
+  let _alertInterval    = null;    // interval untuk menaikkan volume & ulangi TTS
+  let _ttsLoopInterval  = null;    // interval khusus pengulangan TTS
 
+  /**
+   * Inisialisasi AudioContext — harus dipanggil dari gesture user
+   * agar browser mengizinkan audio autoplay.
+   */
   function unlockAudio() {
     try {
-      _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      _gainNode = _audioCtx.createGain(); _gainNode.gain.value=10.0; _gainNode.connect(_audioCtx.destination);
-      const buf=_audioCtx.createBuffer(1,1,22050),src=_audioCtx.createBufferSource(); src.buffer=buf; src.connect(_gainNode); src.start(0);
-      const silOsc=_audioCtx.createOscillator(),silGain=_audioCtx.createGain(); silGain.gain.value=0.00001; silOsc.connect(silGain); silGain.connect(_gainNode); silOsc.frequency.value=1; silOsc.start();
+      if (!_audioCtx) {
+        _audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+        _gainNode  = _audioCtx.createGain();
+        _gainNode.gain.value = 0.0001;
+        _gainNode.connect(_audioCtx.destination);
+      }
+      if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(()=>{});
+
+      // Buffer kosong untuk unlock
+      const buf = _audioCtx.createBuffer(1, 1, 22050);
+      const src = _audioCtx.createBufferSource();
+      src.buffer = buf; src.connect(_gainNode); src.start(0);
+
+      // Diam agar AudioContext tetap 'running'
+      const silOsc  = _audioCtx.createOscillator();
+      const silGain = _audioCtx.createGain();
+      silGain.gain.value = 0.00001;
+      silOsc.connect(silGain); silGain.connect(_gainNode);
+      silOsc.frequency.value = 1; silOsc.start();
+    } catch(e) { console.warn('unlockAudio:', e); }
+
+    // Preload voices
+    try {
+      window.speechSynthesis.cancel();
+      const wu = new SpeechSynthesisUtterance('');
+      wu.volume = 0;
+      window.speechSynthesis.speak(wu);
     } catch(e) {}
-    try { window.speechSynthesis.cancel(); const wu=new SpeechSynthesisUtterance(''); wu.volume=0; window.speechSynthesis.speak(wu); } catch(e) {}
   }
 
+  /**
+   * Mulai alert eskalasi:
+   * - Bicara "ANDA MEMBUKA APLIKASI LAIN" setiap 2 detik
+   * - Volume naik setiap 0.5 detik
+   * - Terus berjalan sampai stopEscalatingAlert() dipanggil
+   */
+  function startEscalatingAlert() {
+    if (_alertActive) return;          // jangan double-start
+    _alertActive     = true;
+    _alertVolume     = 0.05;           // reset ke volume awal
+
+    // Resume AudioContext jika suspended
+    if (_audioCtx && _audioCtx.state === 'suspended') {
+      _audioCtx.resume().catch(()=>{});
+    }
+
+    // ── Langkah 1: Bicara langsung sekarang ──
+    _speakAlertNow(_alertVolume);
+
+    // ── Langkah 2: Naikkan volume setiap 0.5 detik ──
+    _alertInterval = setInterval(() => {
+      if (!_alertActive) { clearInterval(_alertInterval); return; }
+
+      _alertVolume = Math.min(_alertVolume + _alertVolumeStep, _alertMaxVolume);
+
+      // Update gainNode AudioContext
+      if (_gainNode) {
+        _gainNode.gain.setTargetAtTime(_alertVolume * 10, _audioCtx.currentTime, 0.05);
+      }
+    }, 500);
+
+    // ── Langkah 3: Ulangi TTS setiap 2 detik ──
+    _ttsLoopInterval = setInterval(() => {
+      if (!_alertActive) { clearInterval(_ttsLoopInterval); return; }
+      _speakAlertNow(_alertVolume);
+    }, 2000);
+  }
+
+  /**
+   * Hentikan semua alert saat siswa kembali ke tab.
+   */
+  function stopEscalatingAlert() {
+    _alertActive = false;
+
+    clearInterval(_alertInterval);
+    clearInterval(_ttsLoopInterval);
+    _alertInterval   = null;
+    _ttsLoopInterval = null;
+
+    // Hentikan TTS yang sedang berjalan
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+
+    // Turunkan volume gainNode kembali ke nol pelan-pelan
+    if (_gainNode && _audioCtx) {
+      _gainNode.gain.setTargetAtTime(0.0001, _audioCtx.currentTime, 0.3);
+    }
+  }
+
+  /**
+   * Langsung ucapkan peringatan dengan volume saat ini.
+   * Menggunakan SpeechSynthesis + sinyal beep AudioContext.
+   */
+  function _speakAlertNow(vol) {
+    // ── Beep AudioContext ──
+    if (_audioCtx && _gainNode) {
+      try {
+        const osc  = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        gain.gain.setValueAtTime(vol * 8, _audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.25);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, _audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(_audioCtx.destination);
+        osc.start(_audioCtx.currentTime);
+        osc.stop(_audioCtx.currentTime + 0.25);
+      } catch(e) {}
+    }
+
+    // ── TTS (Web Speech API) ──
+    try {
+      window.speechSynthesis.cancel();
+
+      const utterance     = new SpeechSynthesisUtterance('ANDA MEMBUKA APLIKASI LAIN');
+      utterance.lang      = 'id-ID';
+      utterance.volume    = Math.min(vol + 0.1, 1.0); // langsung pakai vol saat ini
+      utterance.rate      = 0.80;
+      utterance.pitch     = 1.2;
+
+      // Pilih suara bahasa Indonesia jika tersedia
+      const voices = window.speechSynthesis.getVoices();
+      const idVoice = voices.find(v => v.lang.startsWith('id')) ||
+                      voices.find(v => v.lang.startsWith('ms'));
+      if (idVoice) utterance.voice = idVoice;
+
+      utterance.onerror = () => {};
+      window.speechSynthesis.speak(utterance);
+    } catch(e) {}
+  }
+
+  /* ── Legacy helper untuk peringatan satu kali (tetap dipakai di showWarning) ── */
   function boostAndSpeak(text) {
     if (_audioCtx) {
-      if (_audioCtx.state==='suspended') _audioCtx.resume().catch(()=>{});
+      if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(()=>{});
       try {
-        const sr=_audioCtx.sampleRate,buf=_audioCtx.createBuffer(1,Math.floor(sr*.08),sr),data=buf.getChannelData(0);
-        for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*.0002;
-        const burst=_audioCtx.createBufferSource(),bGain=_audioCtx.createGain(); bGain.gain.value=8.0;
-        burst.buffer=buf; burst.connect(bGain); bGain.connect(_gainNode||_audioCtx.destination); burst.start();
+        const sr   = _audioCtx.sampleRate;
+        const buf  = _audioCtx.createBuffer(1, Math.floor(sr * .08), sr);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.0002;
+        const burst = _audioCtx.createBufferSource();
+        const bGain = _audioCtx.createGain();
+        bGain.gain.value = 8.0;
+        burst.buffer = buf; burst.connect(bGain); bGain.connect(_gainNode || _audioCtx.destination); burst.start();
       } catch(e) {}
     }
     try {
-      window.speechSynthesis.cancel(); let attempt=0;
-      const trySpeak=()=>{
-        const u=new SpeechSynthesisUtterance(text); u.lang='id-ID'; u.volume=1; u.rate=0.85; u.pitch=1.1;
-        const voices=window.speechSynthesis.getVoices(),idV=voices.find(v=>v.lang.startsWith('id'));
-        if(idV) u.voice=idV;
-        u.onerror=()=>{ if(attempt<2){attempt++;setTimeout(trySpeak,400);} };
+      window.speechSynthesis.cancel();
+      let attempt = 0;
+      const trySpeak = () => {
+        const u  = new SpeechSynthesisUtterance(text);
+        u.lang   = 'id-ID'; u.volume = 1; u.rate = 0.85; u.pitch = 1.1;
+        const voices = window.speechSynthesis.getVoices();
+        const idV    = voices.find(v => v.lang.startsWith('id'));
+        if (idV) u.voice = idV;
+        u.onerror = () => { if (attempt < 2) { attempt++; setTimeout(trySpeak, 400); } };
         window.speechSynthesis.speak(u);
       };
-      if(window.speechSynthesis.getVoices().length===0){window.speechSynthesis.addEventListener('voiceschanged',trySpeak,{once:true});setTimeout(trySpeak,600);}else trySpeak();
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.addEventListener('voiceschanged', trySpeak, { once: true });
+        setTimeout(trySpeak, 600);
+      } else trySpeak();
     } catch(e) {}
   }
+
   function speakAlert(text) { boostAndSpeak(text); }
 
   /* ══════════════════════════════════════════
@@ -398,17 +546,14 @@
     btn.disabled = true; btn.textContent = 'Memeriksa...';
 
     try {
-      // Firestore: get document from "rooms" collection with doc ID = kode room
       const docSnap = await db.collection('rooms').doc(code).get();
       if (docSnap.exists) {
         foundRoomData = docSnap.data();
         roomCode = code;
-
         document.getElementById('foundRoomName').textContent = foundRoomData.name || 'Room Ujian';
         document.getElementById('foundRoomUrl').textContent  = foundRoomData.examUrl || '(URL akan dimuat saat ujian)';
         document.getElementById('roomInfoBox').classList.add('show');
         document.getElementById('errBox').classList.remove('show');
-
         setTimeout(lanjutKeStep2, 600);
       } else {
         document.getElementById('errBox').textContent = 'Kode room tidak ditemukan. Periksa kode dan coba lagi.';
@@ -453,7 +598,7 @@
      STEP 2 — DATA DIRI & MULAI UJIAN
   ══════════════════════════════════════════ */
   function mulaiUjian() {
-    unlockAudio();
+    unlockAudio();   // ← unlock AudioContext dari gesture klik ini
     const nama    = document.getElementById('inputNama').value.trim();
     const id      = document.getElementById('inputId').value.trim();
     const kelas   = document.getElementById('inputKelas').value;
@@ -471,7 +616,6 @@
     roomName       = foundRoomData.name;
     examUrl        = foundRoomData.examUrl;
 
-    // Buat doc ID unik dari nomor peserta (sanitize)
     pesertaDocId = pesertaId.replace(/[^a-zA-Z0-9_-]/g,'_');
 
     document.getElementById('loginScreen').style.display = 'none';
@@ -495,12 +639,10 @@
 
   /* ══════════════════════════════════════════
      FIRESTORE — REGISTER & UPDATE
-     Struktur: rooms/{roomCode}/peserta/{pesertaDocId}
   ══════════════════════════════════════════ */
   async function registerPeserta() {
     if (!db) return;
     try {
-      // Simpan peserta sebagai sub-collection document
       pesertaDocRef = db
         .collection('rooms').doc(roomCode)
         .collection('peserta').doc(pesertaDocId);
@@ -522,7 +664,6 @@
 
   function listenRoomUrlChanges() {
     if (!db) return;
-    // onSnapshot untuk real-time listener pada dokumen room
     examUrlUnsubscribe = db.collection('rooms').doc(roomCode)
       .onSnapshot((docSnap) => {
         if (!docSnap.exists) return;
@@ -540,11 +681,12 @@
   }
 
   async function updateStatus(status) {
-    const indicator=document.getElementById('statusIndicator'),text=document.getElementById('statusText');
-    indicator.className='status-indicator full';
-    if(status==='aman'){indicator.classList.add('aman');text.textContent='Sedang Ujian';}
-    else if(status==='tab'){indicator.classList.add('warning');text.textContent='Buka Tab Lain';}
-    else if(status==='keluar'){indicator.classList.add('danger');text.textContent='Keluar Halaman';}
+    const indicator = document.getElementById('statusIndicator');
+    const text      = document.getElementById('statusText');
+    indicator.className = 'status-indicator full';
+    if (status === 'aman')   { indicator.classList.add('aman');    text.textContent = 'Sedang Ujian'; }
+    else if (status === 'tab')    { indicator.classList.add('warning'); text.textContent = 'Buka Tab Lain'; }
+    else if (status === 'keluar') { indicator.classList.add('danger');  text.textContent = 'Keluar Halaman'; }
 
     if (pesertaDocRef) {
       try {
@@ -571,42 +713,81 @@
   }
 
   function showWarning(type) {
-    const overlay=document.getElementById('warningOverlay');
-    document.getElementById('warningTitle').textContent = type==='tab' ? 'Tab Lain Terdeteksi!' : 'Keluar dari Halaman!';
-    document.getElementById('warningMsg').textContent   = type==='tab' ? 'Kamu membuka tab atau window lain saat ujian. Tindakan ini telah dicatat.' : 'Kamu meninggalkan halaman ujian. Tindakan ini telah dicatat.';
+    const overlay = document.getElementById('warningOverlay');
+    document.getElementById('warningTitle').textContent = type === 'tab' ? 'Tab Lain Terdeteksi!' : 'Keluar dari Halaman!';
+    document.getElementById('warningMsg').textContent   = type === 'tab'
+      ? 'Kamu membuka tab atau window lain saat ujian. Tindakan ini telah dicatat.'
+      : 'Kamu meninggalkan halaman ujian. Tindakan ini telah dicatat.';
     document.getElementById('warningCount').textContent = `Pelanggaran ke-${violations}`;
     overlay.classList.add('show');
-    const ttsText = type==='tab' ? 'PERHATIAN! Kamu membuka tab lain!' : 'PERHATIAN! Kamu keluar dari halaman ujian!';
-    setTimeout(()=>speakAlert(ttsText), 400);
-    setTimeout(()=>overlay.classList.remove('show'), 3500);
+    setTimeout(()=> overlay.classList.remove('show'), 3500);
   }
 
+  /* ══════════════════════════════════════════
+     MONITORING + ESCALATING ALERT INTEGRATION
+  ══════════════════════════════════════════ */
   function setupMonitoring() {
-    document.addEventListener('visibilitychange',()=>{
-      if(document.hidden){updateStatus('tab');addViolation('tab');}else{updateStatus('aman');}
+
+    /* ── Deteksi tab disembunyikan / dibuka kembali ── */
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // Siswa berpindah tab atau aplikasi
+        updateStatus('tab');
+        addViolation('tab');
+        startEscalatingAlert();   // ← mulai suara eskalasi di background
+      } else {
+        // Siswa kembali ke tab ujian
+        updateStatus('aman');
+        stopEscalatingAlert();    // ← hentikan semua suara
+      }
     });
+
+    /* ── Deteksi kehilangan fokus window (alt-tab, klik taskbar, dll.) ── */
     let iframeHasFocus = false;
-    document.getElementById('examFrame').addEventListener('mouseenter',()=>{iframeHasFocus=true;});
-    document.getElementById('examFrame').addEventListener('mouseleave',()=>{iframeHasFocus=false;});
-    window.addEventListener('blur',()=>{if(!document.hidden){if(iframeHasFocus){updateStatus('aman');}else{updateStatus('keluar');addViolation('keluar');}}});
-    window.addEventListener('focus',()=>{iframeHasFocus=false;updateStatus('aman');});
-    window.addEventListener('beforeunload',(e)=>{
-      // Firestore tidak support onDisconnect, update manual sebelum close
-      // Gunakan sendBeacon agar sempat kirim sebelum page unload
+    document.getElementById('examFrame').addEventListener('mouseenter', () => { iframeHasFocus = true; });
+    document.getElementById('examFrame').addEventListener('mouseleave', () => { iframeHasFocus = false; });
+
+    window.addEventListener('blur', () => {
+      if (!document.hidden) {
+        if (iframeHasFocus) {
+          updateStatus('aman');
+        } else {
+          updateStatus('keluar');
+          addViolation('keluar');
+          startEscalatingAlert();   // ← mulai suara eskalasi
+        }
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      iframeHasFocus = false;
+      updateStatus('aman');
+      stopEscalatingAlert();        // ← hentikan suara saat kembali
+    });
+
+    /* ── Sebelum halaman ditutup ── */
+    window.addEventListener('beforeunload', (e) => {
+      stopEscalatingAlert();
       if (pesertaDocRef) {
         const url = `https://firestore.googleapis.com/v1/projects/pengawas-asaj78/databases/(default)/documents/rooms/${roomCode}/peserta/${pesertaDocId}?updateMask.fieldPaths=status&updateMask.fieldPaths=lastUpdate`;
         const payload = JSON.stringify({ fields: { status: { stringValue: 'offline' } } });
-        try { navigator.sendBeacon(url, new Blob([payload], {type:'application/json'})); } catch(_) {}
-        // Coba juga update normal
+        try { navigator.sendBeacon(url, new Blob([payload], { type:'application/json' })); } catch(_) {}
         try { pesertaDocRef.update({ status:'offline', lastUpdate: firebase.firestore.FieldValue.serverTimestamp() }); } catch(_) {}
       }
-      e.preventDefault(); e.returnValue='Kamu sedang ujian. Yakin keluar?'; return e.returnValue;
+      e.preventDefault(); e.returnValue = 'Kamu sedang ujian. Yakin keluar?';
+      return e.returnValue;
     });
-    document.addEventListener('contextmenu',e=>e.preventDefault());
-    document.addEventListener('copy',e=>e.preventDefault());
-    document.addEventListener('paste',e=>e.preventDefault());
-    document.addEventListener('keydown',(e)=>{
-      if((e.ctrlKey&&e.shiftKey&&['I','J','C','U'].includes(e.key.toUpperCase()))||(e.ctrlKey&&['U','S','P'].includes(e.key.toUpperCase()))||e.key==='F12') e.preventDefault();
+
+    /* ── Blokir klik kanan, copy, paste, shortcut DevTools ── */
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy',  e => e.preventDefault());
+    document.addEventListener('paste', e => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey && e.shiftKey && ['I','J','C','U'].includes(e.key.toUpperCase())) ||
+          (e.ctrlKey && ['U','S','P'].includes(e.key.toUpperCase())) ||
+          e.key === 'F12') {
+        e.preventDefault();
+      }
     });
   }
 
@@ -614,44 +795,46 @@
      TIMER & UI
   ══════════════════════════════════════════ */
   function startTimer() {
-    timerInterval = setInterval(()=>{
+    timerInterval = setInterval(() => {
       timerSeconds--;
-      const m=Math.floor(timerSeconds/60).toString().padStart(2,'0'),s=(timerSeconds%60).toString().padStart(2,'0');
-      document.getElementById('timerDisplay').textContent=`${m}:${s}`;
-      if(timerSeconds<=300) document.getElementById('timerBadgeSm').classList.add('danger');
-      if(timerSeconds<=0){clearInterval(timerInterval);selesai();}
-    },1000);
+      const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+      const s = (timerSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+      if (timerSeconds <= 300) document.getElementById('timerBadgeSm').classList.add('danger');
+      if (timerSeconds <= 0)  { clearInterval(timerInterval); selesai(); }
+    }, 1000);
   }
 
   async function selesai() {
-    if(pesertaDocRef) {
+    stopEscalatingAlert();
+    if (pesertaDocRef) {
       try {
-        await pesertaDocRef.update({status:'selesai', lastUpdate: firebase.firestore.FieldValue.serverTimestamp()});
+        await pesertaDocRef.update({ status:'selesai', lastUpdate: firebase.firestore.FieldValue.serverTimestamp() });
       } catch(e) {}
     }
-    if(examUrlUnsubscribe) examUrlUnsubscribe();
+    if (examUrlUnsubscribe) examUrlUnsubscribe();
     alert('Waktu ujian habis! Terima kasih.');
-    document.getElementById('examScreen').style.display='none';
-    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('examScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
   }
 
   function toggleHeader() {
-    const header=document.getElementById('examHeader');
+    const header   = document.getElementById('examHeader');
     const expanded = !header.classList.contains('collapsed');
-    if(expanded){header.classList.add('collapsed');header.style.maxHeight='';}
-    else{header.style.maxHeight=header.scrollHeight+'px';header.classList.remove('collapsed');}
+    if (expanded) { header.classList.add('collapsed'); header.style.maxHeight = ''; }
+    else { header.style.maxHeight = header.scrollHeight + 'px'; header.classList.remove('collapsed'); }
   }
 
   function initHeaderHeight() {
-    const header=document.getElementById('examHeader');
+    const header = document.getElementById('examHeader');
     header.dataset.fullHeight = header.scrollHeight;
     header.classList.add('collapsed');
   }
 
   function onFrameLoad() {
-    const loading=document.getElementById('iframeLoading');
+    const loading = document.getElementById('iframeLoading');
     loading.classList.add('hidden');
-    setTimeout(()=>{loading.style.display='none';},300);
+    setTimeout(() => { loading.style.display = 'none'; }, 300);
   }
 </script>
 </body>
