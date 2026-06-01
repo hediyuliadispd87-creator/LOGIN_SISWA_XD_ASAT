@@ -126,6 +126,113 @@
   .status-indicator.danger  { background: var(--danger-bg);  color: var(--danger);  border: 1px solid #fecaca; }
   .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.5s ease infinite; }
 
+  /* ── TOMBOL SELESAI ── */
+  .btn-selesai-wrapper { grid-column: 1 / -1; }
+  .btn-selesai {
+    width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669);
+    color: white; border: none; border-radius: 10px;
+    font-family: var(--sans); font-size: 13px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: all .15s; box-shadow: 0 2px 8px rgba(16,185,129,.25);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-selesai:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(16,185,129,.35); }
+  .btn-selesai:active { transform: translateY(0); }
+  .btn-selesai svg { width: 15px; height: 15px; }
+
+  /* ── KONFIRMASI SELESAI MODAL ── */
+  .confirm-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+    z-index: 998; align-items: center; justify-content: center; padding: 20px;
+    animation: fadeIn .2s ease;
+  }
+  .confirm-modal-overlay.show { display: flex; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .confirm-modal {
+    background: var(--white); border-radius: 20px; padding: 28px 24px;
+    width: 100%; max-width: 360px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    animation: slideUp .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .confirm-modal-icon {
+    width: 64px; height: 64px; background: var(--success-bg); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+  }
+  .confirm-modal-icon svg { width: 30px; height: 30px; color: var(--success); }
+  .confirm-modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .confirm-modal-msg { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .confirm-modal-actions { display: flex; gap: 10px; }
+  .confirm-modal-actions .btn-cancel {
+    flex: 1; padding: 11px; background: var(--bg); color: var(--muted);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .confirm-modal-actions .btn-cancel:hover { background: var(--border); }
+  .confirm-modal-actions .btn-confirm {
+    flex: 1; padding: 11px; background: var(--success); color: white;
+    border: none; border-radius: 10px;
+    font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .confirm-modal-actions .btn-confirm:hover { background: #059669; }
+
+  /* ── NOTIFIKASI SELESAI ── */
+  .done-notification {
+    display: none; position: fixed; inset: 0;
+    background: linear-gradient(135deg, #059669 0%, #10b981 40%, #34d399 100%);
+    z-index: 1000; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 32px;
+    animation: fadeInScale .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .done-notification.show { display: flex; }
+  @keyframes fadeInScale { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+
+  .done-checkmark {
+    width: 100px; height: 100px; background: rgba(255,255,255,.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+    animation: checkPop .5s cubic-bezier(.34,1.56,.64,1) .2s both;
+  }
+  @keyframes checkPop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+  .done-checkmark svg { width: 50px; height: 50px; color: white; }
+
+  .done-title {
+    font-size: 30px; font-weight: 700; color: white; margin-bottom: 10px;
+    animation: slideUpFade .4s ease .3s both;
+  }
+  .done-subtitle {
+    font-size: 16px; color: rgba(255,255,255,.85); line-height: 1.6; margin-bottom: 28px;
+    animation: slideUpFade .4s ease .4s both;
+  }
+  @keyframes slideUpFade { from{transform:translateY(14px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  .done-info-row {
+    display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px;
+    animation: slideUpFade .4s ease .5s both;
+  }
+  .done-info-item {
+    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
+    border-radius: 10px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .done-info-key { font-size: 12px; color: rgba(255,255,255,.7); font-weight: 500; }
+  .done-info-val { font-size: 13px; color: white; font-weight: 700; }
+
+  .done-countdown {
+    margin-top: 28px; font-size: 13px; color: rgba(255,255,255,.7);
+    animation: slideUpFade .4s ease .6s both;
+  }
+  .done-countdown-num { font-size: 20px; font-weight: 700; color: white; display: block; margin-top: 4px; }
+
+  /* Countdown ring */
+  .done-countdown-ring { position: relative; display: inline-block; margin-top: 6px; }
+  .done-countdown-ring svg { transform: rotate(-90deg); }
+  .done-countdown-ring .ring-bg { fill: none; stroke: rgba(255,255,255,.2); stroke-width: 4; }
+  .done-countdown-ring .ring-fill { fill: none; stroke: white; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
+  .done-countdown-ring .ring-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: white;
+  }
+
   .webview-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
   .webview-frame { width: 100%; height: 100%; border: none; display: block; }
   .iframe-loading { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 5; transition: opacity .3s; }
@@ -287,6 +394,14 @@
         <div class="status-dot"></div>
         <span id="statusText">Sedang Ujian</span>
       </div>
+
+      <!-- TOMBOL SELESAI -->
+      <div class="btn-selesai-wrapper">
+        <button class="btn-selesai" onclick="konfirmasiSelesai()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Selesai &amp; Kembali ke Room
+        </button>
+      </div>
     </div>
   </header>
 
@@ -310,6 +425,61 @@
   <div class="warning-count" id="warningCount">Pelanggaran ke-1</div>
 </div>
 
+<!-- KONFIRMASI SELESAI MODAL -->
+<div class="confirm-modal-overlay" id="confirmModal">
+  <div class="confirm-modal">
+    <div class="confirm-modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div class="confirm-modal-title">Akhiri Ujian?</div>
+    <div class="confirm-modal-msg">Kamu akan mengakhiri sesi ujian ini</div>
+    <div class="confirm-modal-actions">
+      <button class="btn-cancel" onclick="tutupKonfirmasi()">Batal</button>
+      <button class="btn-confirm" onclick="selesaiManual()">Ya, Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFIKASI SELESAI -->
+<div class="done-notification" id="doneNotification">
+  <div class="done-checkmark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="done-title">Ujian Selesai! 🎉</div>
+  <div class="done-subtitle">Jawaban kamu telah berhasil dikumpulkan.<br>Terima kasih sudah mengerjakan dengan baik.</div>
+
+  <div class="done-info-row">
+    <div class="done-info-item">
+      <span class="done-info-key">Nama</span>
+      <span class="done-info-val" id="doneNama">—</span>
+    </div>
+    <div class="done-info-item">
+      <span class="done-info-key">Kelas</span>
+      <span class="done-info-val" id="doneKelas">—</span>
+    </div>
+    <div class="done-info-item">
+      <span class="done-info-key">Ruangan</span>
+      <span class="done-info-val" id="doneRuangan">—</span>
+    </div>
+    <div class="done-info-item">
+      <span class="done-info-key">Pelanggaran Tercatat</span>
+      <span class="done-info-val" id="doneViolations">0</span>
+    </div>
+  </div>
+
+  <div class="done-countdown">
+    Kembali ke halaman utama dalam...
+    <div class="done-countdown-ring" id="countdownRingWrapper">
+      <svg width="56" height="56" viewBox="0 0 56 56">
+        <circle class="ring-bg" cx="28" cy="28" r="22"/>
+        <circle class="ring-fill" id="ringFill" cx="28" cy="28" r="22"
+          stroke-dasharray="138.2" stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-num" id="countdownNum">5</div>
+    </div>
+  </div>
+</div>
+
 <script>
   /* ══════════════════════════════════════════
      FIREBASE CONFIG
@@ -331,6 +501,7 @@
   let violations=0, timerSeconds=90*60, timerInterval;
   let foundRoomData = null;
   let pesertaDocId = '';
+  let monitoringActive = false; /* flag untuk kontrol monitoring */
 
   /* ── INIT FIREBASE ── */
   firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
@@ -338,27 +509,21 @@
 
   /* ══════════════════════════════════════════
      AUDIO SYSTEM — MOBILE-COMPATIBLE
-     Volume naik setiap 500ms dari 0.05 → 1.0
   ══════════════════════════════════════════ */
   let _audioCtx        = null;
   let _masterGain      = null;
   let _audioUnlocked   = false;
 
-  /* Alert state */
   let _alertActive     = false;
-  let _alertVolume     = 0.05;   // mulai dari volume kecil
-  let _alertStep       = 0.05;   // naik 0.05 setiap 500ms → penuh dalam ~10 detik
-  let _alertEscTimer   = null;   // interval eskalasi volume 500ms
-  let _alertBeepTimer  = null;   // interval bunyi beep
-  let _alertTtsTimer   = null;   // interval TTS loop
+  let _alertVolume     = 0.05;
+  let _alertStep       = 0.05;
+  let _alertEscTimer   = null;
+  let _alertBeepTimer  = null;
+  let _alertTtsTimer   = null;
 
-  /* ── Inisialisasi / unlock AudioContext (wajib dari interaksi user) ── */
   function _initAudio() {
     if (_audioCtx) {
-      /* Jika sudah ada tapi suspended (umum di iOS), resume */
-      if (_audioCtx.state === 'suspended') {
-        _audioCtx.resume().catch(() => {});
-      }
+      if (_audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
       return;
     }
     try {
@@ -366,24 +531,17 @@
       _masterGain = _audioCtx.createGain();
       _masterGain.gain.value = 0.0001;
       _masterGain.connect(_audioCtx.destination);
-
-      /* Putar buffer kosong agar iOS izinkan audio */
       const silBuf = _audioCtx.createBuffer(1, 1, _audioCtx.sampleRate);
       const silSrc = _audioCtx.createBufferSource();
       silSrc.buffer = silBuf;
       silSrc.connect(_masterGain);
       silSrc.start(0);
-
       _audioUnlocked = true;
-    } catch (e) {
-      console.warn('_initAudio error:', e);
-    }
+    } catch (e) { console.warn('_initAudio error:', e); }
   }
 
-  /* Dipanggil dari setiap interaksi user — unlock audio di iOS */
   function unlockAudio() {
     _initAudio();
-    /* Unlock TTS engine juga */
     try {
       window.speechSynthesis.cancel();
       const wu = new SpeechSynthesisUtterance('');
@@ -392,96 +550,66 @@
     } catch (e) {}
   }
 
-  /* ── Mainkan satu beep pendek dengan volume tertentu ── */
   function _playBeep(volume) {
     if (!_audioCtx) return;
-    if (_audioCtx.state === 'suspended') {
-      _audioCtx.resume().catch(() => {});
-      return; /* beep berikutnya akan bermain setelah resume */
-    }
+    if (_audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); return; }
     try {
       const now  = _audioCtx.currentTime;
       const osc  = _audioCtx.createOscillator();
       const gain = _audioCtx.createGain();
-
       osc.type = 'square';
       osc.frequency.setValueAtTime(880, now);
       osc.frequency.setValueAtTime(660, now + 0.12);
-
       gain.gain.setValueAtTime(0, now);
       gain.gain.linearRampToValueAtTime(volume, now + 0.02);
       gain.gain.setValueAtTime(volume, now + 0.15);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
-
       osc.connect(gain);
-      gain.connect(_audioCtx.destination); /* langsung ke destination, tidak lewat masterGain */
+      gain.connect(_audioCtx.destination);
       osc.start(now);
       osc.stop(now + 0.31);
     } catch (e) {}
   }
 
-  /* ── TTS dengan volume & bahasa Indonesia ── */
   function _speakTTS(text, volume) {
     if (!window.speechSynthesis) return;
     try {
       window.speechSynthesis.cancel();
       const u  = new SpeechSynthesisUtterance(text);
       u.lang   = 'id-ID';
-      u.volume = Math.min(volume + 0.2, 1.0); /* TTS sedikit lebih keras */
+      u.volume = Math.min(volume + 0.2, 1.0);
       u.rate   = 0.85;
       u.pitch  = 1.1;
       u.onerror = () => {};
-
       const applyVoice = () => {
         const voices  = window.speechSynthesis.getVoices();
-        const idVoice = voices.find(v => v.lang.startsWith('id')) ||
-                        voices.find(v => v.lang.startsWith('ms'));
+        const idVoice = voices.find(v => v.lang.startsWith('id')) || voices.find(v => v.lang.startsWith('ms'));
         if (idVoice) u.voice = idVoice;
         window.speechSynthesis.speak(u);
       };
-
       if (window.speechSynthesis.getVoices().length === 0) {
         window.speechSynthesis.addEventListener('voiceschanged', applyVoice, { once: true });
         setTimeout(applyVoice, 500);
-      } else {
-        applyVoice();
-      }
+      } else { applyVoice(); }
     } catch (e) {}
   }
 
-  /* ── TTS saat tombol ditekan (sekali, volume penuh) ── */
-  function speakOnBtn(text) {
-    _initAudio();
-    _speakTTS(text, 1.0);
-  }
+  function speakOnBtn(text) { _initAudio(); _speakTTS(text, 1.0); }
 
-  /* ══════════════════════════════════════════
-     ESKALASI ALERT — volume naik tiap 500ms
-  ══════════════════════════════════════════ */
   function startEscalatingAlert() {
     if (_alertActive) return;
     _alertActive  = true;
-    _alertVolume  = 0.05; /* reset ke volume awal */
-
-    /* Pastikan AudioContext aktif */
-    if (_audioCtx && _audioCtx.state === 'suspended') {
-      _audioCtx.resume().catch(() => {});
-    }
-
-    /* ── 1. Eskalasi volume setiap 500ms ── */
+    _alertVolume  = 0.05;
+    if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
     _alertEscTimer = setInterval(() => {
       if (!_alertActive) { clearInterval(_alertEscTimer); return; }
       _alertVolume = Math.min(_alertVolume + _alertStep, 1.0);
     }, 500);
-
-    /* ── 2. Beep setiap 600ms menggunakan volume yang sudah naik ── */
-    _playBeep(_alertVolume); /* beep pertama langsung */
+    _playBeep(_alertVolume);
     _alertBeepTimer = setInterval(() => {
       if (!_alertActive) { clearInterval(_alertBeepTimer); return; }
       _playBeep(_alertVolume);
     }, 600);
-
-    /* ── 3. TTS loop setiap 2.5 detik ── */
     _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
     _alertTtsTimer = setInterval(() => {
       if (!_alertActive) { clearInterval(_alertTtsTimer); return; }
@@ -494,13 +622,10 @@
     clearInterval(_alertEscTimer);
     clearInterval(_alertBeepTimer);
     clearInterval(_alertTtsTimer);
-    _alertEscTimer  = null;
-    _alertBeepTimer = null;
-    _alertTtsTimer  = null;
+    _alertEscTimer = _alertBeepTimer = _alertTtsTimer = null;
     try { window.speechSynthesis.cancel(); } catch (e) {}
   }
 
-  /* ── speakAlert: dipanggil untuk peringatan satu kali (bukan loop) ── */
   function speakAlert(text) {
     _initAudio();
     _playBeep(0.9);
@@ -523,12 +648,9 @@
   async function cekRoom() {
     const code = document.getElementById('inputRoomCode').value.trim().toUpperCase();
     if (!code || code.length < 4) return;
-
     speakOnBtn('Memeriksa kode room');
-
     const btn = document.getElementById('btnCekRoom');
     btn.disabled = true; btn.textContent = 'Memeriksa...';
-
     try {
       const docSnap = await db.collection('rooms').doc(code).get();
       if (docSnap.exists) {
@@ -587,8 +709,7 @@
      STEP 2 — DATA DIRI & MULAI UJIAN
   ══════════════════════════════════════════ */
   function mulaiUjian() {
-    unlockAudio(); /* WAJIB dipanggil dari interaksi user agar iOS izinkan audio */
-
+    unlockAudio();
     const nama    = document.getElementById('inputNama').value.trim();
     const id      = document.getElementById('inputId').value.trim();
     const kelas   = document.getElementById('inputKelas').value;
@@ -638,7 +759,6 @@
       pesertaDocRef = db
         .collection('rooms').doc(roomCode)
         .collection('peserta').doc(pesertaDocId);
-
       await pesertaDocRef.set({
         id         : pesertaId,
         nama       : pesertaNama,
@@ -649,9 +769,7 @@
         joinedAt   : firebase.firestore.FieldValue.serverTimestamp(),
         lastUpdate : firebase.firestore.FieldValue.serverTimestamp()
       });
-    } catch(e) {
-      console.error('registerPeserta error:', e);
-    }
+    } catch(e) { console.error('registerPeserta error:', e); }
   }
 
   function listenRoomUrlChanges() {
@@ -673,6 +791,7 @@
   }
 
   async function updateStatus(status) {
+    if (!monitoringActive) return; /* jangan update jika monitoring sudah dimatikan */
     const indicator = document.getElementById('statusIndicator');
     const text      = document.getElementById('statusText');
     indicator.className = 'status-indicator full';
@@ -682,15 +801,13 @@
 
     if (pesertaDocRef) {
       try {
-        await pesertaDocRef.update({
-          status,
-          lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await pesertaDocRef.update({ status, lastUpdate: firebase.firestore.FieldValue.serverTimestamp() });
       } catch(e) { console.error('updateStatus error:', e); }
     }
   }
 
   async function addViolation(type) {
+    if (!monitoringActive) return; /* abaikan pelanggaran jika monitoring mati */
     violations++;
     if (pesertaDocRef) {
       try {
@@ -719,7 +836,10 @@
      MONITORING
   ══════════════════════════════════════════ */
   function setupMonitoring() {
+    monitoringActive = true;
+
     document.addEventListener('visibilitychange', () => {
+      if (!monitoringActive) return;
       if (document.hidden) {
         updateStatus('tab');
         addViolation('tab');
@@ -727,10 +847,7 @@
       } else {
         updateStatus('aman');
         stopEscalatingAlert();
-        /* Resume AudioContext setelah kembali ke tab (penting untuk iOS) */
-        if (_audioCtx && _audioCtx.state === 'suspended') {
-          _audioCtx.resume().catch(() => {});
-        }
+        if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
       }
     });
 
@@ -739,6 +856,7 @@
     document.getElementById('examFrame').addEventListener('mouseleave', () => { iframeHasFocus = false; });
 
     window.addEventListener('blur', () => {
+      if (!monitoringActive) return;
       if (!document.hidden) {
         if (iframeHasFocus) {
           updateStatus('aman');
@@ -751,23 +869,19 @@
     });
 
     window.addEventListener('focus', () => {
+      if (!monitoringActive) return;
       iframeHasFocus = false;
       updateStatus('aman');
       stopEscalatingAlert();
-      /* Resume AudioContext saat window kembali fokus */
-      if (_audioCtx && _audioCtx.state === 'suspended') {
-        _audioCtx.resume().catch(() => {});
-      }
+      if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
     });
 
-    /* Tap/klik di halaman ujian → resume AudioContext (penting untuk iOS) */
     document.addEventListener('touchstart', () => {
-      if (_audioCtx && _audioCtx.state === 'suspended') {
-        _audioCtx.resume().catch(() => {});
-      }
+      if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
     }, { passive: true });
 
     window.addEventListener('beforeunload', (e) => {
+      if (!monitoringActive) return; /* tidak blokir jika sudah selesai */
       stopEscalatingAlert();
       if (pesertaDocRef) {
         const url = `https://firestore.googleapis.com/v1/projects/pengawas-asaj78/databases/(default)/documents/rooms/${roomCode}/peserta/${pesertaDocId}?updateMask.fieldPaths=status&updateMask.fieldPaths=lastUpdate`;
@@ -791,6 +905,119 @@
     });
   }
 
+  /* ── Matikan semua fungsi keamanan ── */
+  function nonaktifkanKeamanan() {
+    monitoringActive = false;
+    stopEscalatingAlert();
+    clearInterval(timerInterval);
+    if (examUrlUnsubscribe) { examUrlUnsubscribe(); examUrlUnsubscribe = null; }
+    /* Tutup semua overlay aktif */
+    document.getElementById('warningOverlay').classList.remove('show');
+    document.getElementById('confirmModal').classList.remove('show');
+  }
+
+  /* ══════════════════════════════════════════
+     TOMBOL SELESAI — KONFIRMASI & NOTIFIKASI
+  ══════════════════════════════════════════ */
+  function konfirmasiSelesai() {
+    speakOnBtn('Apakah kamu yakin ingin menyelesaikan ujian?');
+    document.getElementById('confirmModal').classList.add('show');
+  }
+
+  function tutupKonfirmasi() {
+    document.getElementById('confirmModal').classList.remove('show');
+    speakOnBtn('Kembali ke ujian');
+  }
+
+  async function selesaiManual() {
+    /* 1. Tutup modal konfirmasi */
+    document.getElementById('confirmModal').classList.remove('show');
+
+    /* 2. Matikan semua fungsi keamanan */
+    nonaktifkanKeamanan();
+
+    /* 3. Update status ke Firestore */
+    if (pesertaDocRef) {
+      try {
+        await pesertaDocRef.update({
+          status     : 'selesai',
+          lastUpdate : firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch(e) { console.error('selesaiManual Firestore error:', e); }
+    }
+
+    /* 4. Isi data di notifikasi */
+    document.getElementById('doneNama').textContent      = pesertaNama;
+    document.getElementById('doneKelas').textContent     = pesertaKelas;
+    document.getElementById('doneRuangan').textContent   = pesertaRuangan;
+    document.getElementById('doneViolations').textContent = violations + ' kali';
+
+    /* 5. Tampilkan notifikasi selesai */
+    document.getElementById('doneNotification').classList.add('show');
+
+    /* 6. TTS */
+    speakOnBtn('Selamat, ujian kamu telah selesai. Terima kasih.');
+
+    /* 7. Countdown 5 detik lalu kembali ke halaman room */
+    let sisa = 5;
+    const circumference = 2 * Math.PI * 22; // 138.23...
+    const ringFill = document.getElementById('ringFill');
+
+    function updateRing(n) {
+      document.getElementById('countdownNum').textContent = n;
+      const offset = circumference * (1 - n / 5);
+      ringFill.style.strokeDashoffset = offset;
+    }
+    updateRing(sisa);
+
+    const countdownInterval = setInterval(() => {
+      sisa--;
+      updateRing(sisa);
+      if (sisa <= 0) {
+        clearInterval(countdownInterval);
+        kembaliKeHalamanRoom();
+      }
+    }, 1000);
+  }
+
+  function kembaliKeHalamanRoom() {
+    /* Reset state */
+    violations    = 0;
+    timerSeconds  = 90 * 60;
+    pesertaNama = pesertaId = pesertaKelas = pesertaRuangan = '';
+    roomCode = roomName = examUrl = '';
+    pesertaDocRef  = null;
+    pesertaDocId   = '';
+    foundRoomData  = null;
+    monitoringActive = false;
+
+    /* Reset UI */
+    document.getElementById('doneNotification').classList.remove('show');
+    document.getElementById('examScreen').style.display = 'none';
+    document.getElementById('examFrame').src = 'about:blank';
+    document.getElementById('timerDisplay').textContent = '90:00';
+    document.getElementById('violationCount').textContent = '0';
+    document.getElementById('timerBadgeSm').classList.remove('danger');
+
+    /* Reset step ke 1 */
+    document.getElementById('formStep2').classList.remove('active');
+    document.getElementById('formStep1').classList.add('active');
+    document.getElementById('step1Num').className   = 'step-num active';
+    document.getElementById('step1Label').className = 'step-label active';
+    document.getElementById('step1Num').textContent = '1';
+    document.getElementById('stepLine1').className  = 'step-line';
+    document.getElementById('step2Num').className   = 'step-num idle';
+    document.getElementById('step2Label').className = 'step-label idle';
+    document.getElementById('inputRoomCode').value  = '';
+    document.getElementById('btnCekRoom').disabled  = true;
+    document.getElementById('btnCekRoom').textContent = 'Cek & Lanjutkan →';
+    document.getElementById('roomInfoBox').classList.remove('show');
+    document.getElementById('errBox').classList.remove('show');
+
+    /* Tampilkan login screen */
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+
   /* ══════════════════════════════════════════
      TIMER & UI
   ══════════════════════════════════════════ */
@@ -805,19 +1032,18 @@
       if (timerSeconds === 60)   speakOnBtn('Waktu ujian tersisa satu menit');
 
       if (timerSeconds <= 300) document.getElementById('timerBadgeSm').classList.add('danger');
-      if (timerSeconds <= 0)  { clearInterval(timerInterval); selesai(); }
+      if (timerSeconds <= 0)  { clearInterval(timerInterval); selesaiOtomatis(); }
     }, 1000);
   }
 
-  async function selesai() {
-    stopEscalatingAlert();
+  async function selesaiOtomatis() {
+    nonaktifkanKeamanan();
     speakOnBtn('Waktu ujian habis, terima kasih');
     if (pesertaDocRef) {
       try {
         await pesertaDocRef.update({ status:'selesai', lastUpdate: firebase.firestore.FieldValue.serverTimestamp() });
       } catch(e) {}
     }
-    if (examUrlUnsubscribe) examUrlUnsubscribe();
     alert('Waktu ujian habis! Terima kasih.');
     document.getElementById('examScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'flex';
