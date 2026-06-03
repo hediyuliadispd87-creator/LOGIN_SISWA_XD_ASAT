@@ -786,20 +786,85 @@
   function startEscalatingAlert() {
     if (_alertActive) return;
     _alertActive  = true;
-    _alertVolume  = 0.05;
+    _alertVolume  = 0.3;
     if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
-    _alertEscTimer = setInterval(() => {
-      if (!_alertActive) { clearInterval(_alertEscTimer); return; }
-      _alertVolume = Math.min(_alertVolume + _alertStep, 0.3);
-    }, 500);
+    
+    // Beep Pattern: 5 seconds ON, 30 seconds OFF, repeat (35 second cycle)
+    const SOUND_ON_DURATION = 5000;    // 5 seconds
+    const SOUND_OFF_DURATION = 30000;  // 30 seconds
+    const SOUND_CYCLE_DURATION = SOUND_ON_DURATION + SOUND_OFF_DURATION; // 35 seconds total
+    
+    // TTS Pattern: 10 seconds ON, 20 seconds OFF, repeat (30 second cycle)
+    const TTS_ON_DURATION = 10000;     // 10 seconds
+    const TTS_OFF_DURATION = 20000;    // 20 seconds (pause)
+    const TTS_CYCLE_DURATION = TTS_ON_DURATION + TTS_OFF_DURATION; // 30 seconds total
+    
+    let soundIsPlaying = true;
+    let ttsIsPlaying = true;
+    let soundCycleStartTime = Date.now();
+    let ttsCycleStartTime = Date.now();
+    
+    function updateSoundState() {
+      if (!_alertActive) return;
+      
+      const elapsedInSoundCycle = (Date.now() - soundCycleStartTime) % SOUND_CYCLE_DURATION;
+      const shouldPlay = elapsedInSoundCycle < SOUND_ON_DURATION;
+      
+      if (shouldPlay && !soundIsPlaying) {
+        soundIsPlaying = true;
+        _alertBeepTimer = setInterval(() => {
+          if (!_alertActive || !soundIsPlaying) return;
+          _playBeep(_alertVolume);
+        }, 600);
+      } else if (!shouldPlay && soundIsPlaying) {
+        soundIsPlaying = false;
+        if (_alertBeepTimer) {
+          clearInterval(_alertBeepTimer);
+          _alertBeepTimer = null;
+        }
+      }
+    }
+    
+    function updateTtsState() {
+      if (!_alertActive) return;
+      
+      const elapsedInTtsCycle = (Date.now() - ttsCycleStartTime) % TTS_CYCLE_DURATION;
+      const shouldPlayTts = elapsedInTtsCycle < TTS_ON_DURATION;
+      
+      if (shouldPlayTts && !ttsIsPlaying) {
+        ttsIsPlaying = true;
+        _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+        _alertTtsTimer = setInterval(() => {
+          if (!_alertActive || !ttsIsPlaying) return;
+          _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+        }, 2500);
+      } else if (!shouldPlayTts && ttsIsPlaying) {
+        ttsIsPlaying = false;
+        if (_alertTtsTimer) {
+          clearInterval(_alertTtsTimer);
+          _alertTtsTimer = null;
+        }
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+      }
+    }
+    
+    // Play initial beep and start pattern
     _playBeep(_alertVolume);
     _alertBeepTimer = setInterval(() => {
       if (!_alertActive) { clearInterval(_alertBeepTimer); return; }
       _playBeep(_alertVolume);
     }, 600);
+    
+    // Check and update sound state every 100ms
+    _alertEscTimer = setInterval(() => {
+      updateSoundState();
+      updateTtsState();
+    }, 100);
+    
+    // Play initial TTS message
     _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
     _alertTtsTimer = setInterval(() => {
-      if (!_alertActive) { clearInterval(_alertTtsTimer); return; }
+      if (!_alertActive || !ttsIsPlaying) return;
       _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
     }, 2500);
   }
