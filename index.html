@@ -34,7 +34,7 @@
   }
 
   .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 50%, #ecfdf5 100%); overflow-y: auto; }
-  .login-card {\n    background: var(--white);\n    border: 1px solid var(--border);\n    border-radius: 20px;\n    padding: 32px 28px;\n    width: 100%;\n    max-width: 440px;\n    box-shadow: 0 4px 24px rgba(0,0,0,0.06);\n    padding-bottom: calc(32px + max(0px, env(safe-area-inset-bottom)));\n  }
+  .login-card { background: var(--white); border: 1px solid var(--border); border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 440px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); padding-bottom: calc(32px + max(0px, env(safe-area-inset-bottom))); }
   .login-logo { text-align: center; margin-bottom: 24px; }
   .login-logo-icon { width: 56px; height: 56px; background: var(--accent); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
   .login-logo-icon svg { width: 26px; height: 26px; color: white; }
@@ -78,91 +78,37 @@
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
   label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
   input[type="text"], select {
-    width: 100%;
-    padding: 11px 14px;
-    min-height: 44px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-family: var(--sans);
-    font-size: 14px;
-    color: var(--text);
-    background: var(--bg);
-    outline: none;
-    transition: border-color .15s;
-    appearance: none;
-    -webkit-appearance: none;
-    -webkit-user-select: none;
+    width: 100%; padding: 11px 14px; min-height: 44px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: var(--sans); font-size: 14px; color: var(--text); background: var(--bg);
+    outline: none; transition: border-color .15s; appearance: none; -webkit-appearance: none; -webkit-user-select: none;
   }
   input[type="password"] {
-    width: 100%;
-    padding: 11px 14px;
-    min-height: 44px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-family: var(--sans);
-    font-size: 14px;
-    color: var(--text);
-    background: var(--bg);
-    outline: none;
-    transition: border-color .15s;
+    width: 100%; padding: 11px 14px; min-height: 44px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: var(--sans); font-size: 14px; color: var(--text); background: var(--bg);
+    outline: none; transition: border-color .15s;
   }
   input[type="text"]:focus, select:focus { border-color: var(--accent); background: var(--white); }
   .select-wrapper { position: relative; }
   .select-wrapper::after { content: ''; position: absolute; right: 13px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--muted); pointer-events: none; }
 
-  .btn-primary {
-    width: 100%;
-    padding: 13px;
-    min-height: 48px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s;
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  .btn-primary { width: 100%; padding: 13px; min-height: 48px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: var(--sans); font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; margin-top: 4px; display: flex; align-items: center; justify-content: center; }
   .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
   .btn-primary:active { transform: translateY(0); }
   .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; transform: none; }
-  .btn-secondary {
-    width: 100%;
-    padding: 11px;
-    min-height: 48px;
-    background: var(--bg);
-    color: var(--muted);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  .btn-secondary { width: 100%; padding: 11px; min-height: 48px; background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); border-radius: 10px; font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; }
   .btn-secondary:hover { background: var(--border); color: var(--text); }
 
   .info-box { background: var(--accent-bg); border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; font-size: 12px; color: #1d4ed8; margin-top: 14px; line-height: 1.55; }
   .info-box strong { display: block; margin-bottom: 2px; }
-
   .err-box { background: var(--danger-bg); border: 1px solid #fecaca; border-radius: 10px; padding: 11px 14px; font-size: 12px; color: var(--danger); margin-bottom: 12px; display: none; line-height: 1.5; }
   .err-box.show { display: block; }
-
   .db-badge { display: inline-flex; align-items: center; gap: 5px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 600; margin-bottom: 14px; }
   .db-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; animation: pulse 1.5s ease infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
   .exam-screen { display: none; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
-
   .exam-header { background: var(--white); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 50; transition: max-height .35s cubic-bezier(.4,0,.2,1); overflow: hidden; }
   .exam-header.collapsed { max-height: var(--header-collapsed-h) !important; }
 
@@ -186,126 +132,52 @@
   .detail-value { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .detail-card.full { grid-column: 1 / -1; }
 
-  .url-display-card { grid-column: 1 / -1; background: var(--orange-bg); border: 1px solid #fed7aa; border-radius: 10px; padding: 9px 12px; display: flex; align-items: center; gap: 10px; }
-  .url-display-icon { width: 28px; height: 28px; background: var(--orange); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .url-display-icon svg { width: 14px; height: 14px; color: white; }
-  .url-display-texts { flex: 1; min-width: 0; }
-  .url-display-label { font-size: 10px; font-weight: 600; color: var(--orange); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
-  .url-display-value { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .url-room-badge { font-size: 10px; font-weight: 700; color: var(--orange); background: #fed7aa; border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
-
   .status-indicator { display: flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; transition: all .3s; }
   .status-indicator.aman    { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
   .status-indicator.warning { background: var(--warn-bg);    color: var(--warn);    border: 1px solid #fde68a; }
   .status-indicator.danger  { background: var(--danger-bg);  color: var(--danger);  border: 1px solid #fecaca; }
   .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.5s ease infinite; }
 
-  /* ── TOMBOL SELESAI ── */
   .btn-selesai-wrapper { grid-column: 1 / -1; }
-  .btn-selesai {
-    width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669);
-    color: white; border: none; border-radius: 10px;
-    font-family: var(--sans); font-size: 13px; font-weight: 700;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
-    transition: all .15s; box-shadow: 0 2px 8px rgba(16,185,129,.25);
-    -webkit-tap-highlight-color: transparent;
-  }
+  .btn-selesai { width: 100%; padding: 11px 14px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 10px; font-family: var(--sans); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all .15s; box-shadow: 0 2px 8px rgba(16,185,129,.25); -webkit-tap-highlight-color: transparent; }
   .btn-selesai:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(16,185,129,.35); }
   .btn-selesai:active { transform: translateY(0); }
   .btn-selesai svg { width: 15px; height: 15px; }
 
-  /* ── KONFIRMASI SELESAI MODAL ── */
-  .confirm-modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
-    z-index: 998; align-items: center; justify-content: center; padding: 20px;
-    animation: fadeIn .2s ease;
-  }
+  .confirm-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 998; align-items: center; justify-content: center; padding: 20px; animation: fadeIn .2s ease; }
   .confirm-modal-overlay.show { display: flex; }
   @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-  .confirm-modal {
-    background: var(--white); border-radius: 20px; padding: 28px 24px;
-    width: 100%; max-width: 360px; text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,.2);
-    animation: slideUp .25s cubic-bezier(.34,1.56,.64,1);
-  }
+  .confirm-modal { background: var(--white); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.2); animation: slideUp .25s cubic-bezier(.34,1.56,.64,1); }
   @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-  .confirm-modal-icon {
-    width: 64px; height: 64px; background: var(--success-bg); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
-  }
+  .confirm-modal-icon { width: 64px; height: 64px; background: var(--success-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
   .confirm-modal-icon svg { width: 30px; height: 30px; color: var(--success); }
   .confirm-modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
   .confirm-modal-msg { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
   .confirm-modal-actions { display: flex; gap: 10px; }
-  .confirm-modal-actions .btn-cancel {
-    flex: 1; padding: 11px; background: var(--bg); color: var(--muted);
-    border: 1.5px solid var(--border); border-radius: 10px;
-    font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s;
-  }
+  .confirm-modal-actions .btn-cancel { flex: 1; padding: 11px; background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); border-radius: 10px; font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
   .confirm-modal-actions .btn-cancel:hover { background: var(--border); }
-  .confirm-modal-actions .btn-confirm {
-    flex: 1; padding: 11px; background: var(--success); color: white;
-    border: none; border-radius: 10px;
-    font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s;
-  }
+  .confirm-modal-actions .btn-confirm { flex: 1; padding: 11px; background: var(--success); color: white; border: none; border-radius: 10px; font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
   .confirm-modal-actions .btn-confirm:hover { background: #059669; }
 
-  /* ── NOTIFIKASI SELESAI ── */
-  .done-notification {
-    display: none; position: fixed; inset: 0;
-    background: linear-gradient(135deg, #059669 0%, #10b981 40%, #34d399 100%);
-    z-index: 1000; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 32px;
-    animation: fadeInScale .4s cubic-bezier(.34,1.56,.64,1);
-  }
+  .done-notification { display: none; position: fixed; inset: 0; background: linear-gradient(135deg, #059669 0%, #10b981 40%, #34d399 100%); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; animation: fadeInScale .4s cubic-bezier(.34,1.56,.64,1); }
   .done-notification.show { display: flex; }
   @keyframes fadeInScale { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-
-  .done-checkmark {
-    width: 100px; height: 100px; background: rgba(255,255,255,.2); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
-    animation: checkPop .5s cubic-bezier(.34,1.56,.64,1) .2s both;
-  }
+  .done-checkmark { width: 100px; height: 100px; background: rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; animation: checkPop .5s cubic-bezier(.34,1.56,.64,1) .2s both; }
   @keyframes checkPop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
   .done-checkmark svg { width: 50px; height: 50px; color: white; }
-
-  .done-title {
-    font-size: 30px; font-weight: 700; color: white; margin-bottom: 10px;
-    animation: slideUpFade .4s ease .3s both;
-  }
-  .done-subtitle {
-    font-size: 16px; color: rgba(255,255,255,.85); line-height: 1.6; margin-bottom: 28px;
-    animation: slideUpFade .4s ease .4s both;
-  }
+  .done-title { font-size: 30px; font-weight: 700; color: white; margin-bottom: 10px; animation: slideUpFade .4s ease .3s both; }
+  .done-subtitle { font-size: 16px; color: rgba(255,255,255,.85); line-height: 1.6; margin-bottom: 28px; animation: slideUpFade .4s ease .4s both; }
   @keyframes slideUpFade { from{transform:translateY(14px);opacity:0} to{transform:translateY(0);opacity:1} }
-
-  .done-info-row {
-    display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px;
-    animation: slideUpFade .4s ease .5s both;
-  }
-  .done-info-item {
-    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
-    border-radius: 10px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
-  }
+  .done-info-row { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; animation: slideUpFade .4s ease .5s both; }
+  .done-info-item { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3); border-radius: 10px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
   .done-info-key { font-size: 12px; color: rgba(255,255,255,.7); font-weight: 500; }
   .done-info-val { font-size: 13px; color: white; font-weight: 700; }
-
-  .done-countdown {
-    margin-top: 28px; font-size: 13px; color: rgba(255,255,255,.7);
-    animation: slideUpFade .4s ease .6s both;
-  }
-  .done-countdown-num { font-size: 20px; font-weight: 700; color: white; display: block; margin-top: 4px; }
-
-  /* Countdown ring */
+  .done-countdown { margin-top: 28px; font-size: 13px; color: rgba(255,255,255,.7); animation: slideUpFade .4s ease .6s both; }
   .done-countdown-ring { position: relative; display: inline-block; margin-top: 6px; }
   .done-countdown-ring svg { transform: rotate(-90deg); }
   .done-countdown-ring .ring-bg { fill: none; stroke: rgba(255,255,255,.2); stroke-width: 4; }
   .done-countdown-ring .ring-fill { fill: none; stroke: white; stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
-  .done-countdown-ring .ring-num {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700; color: white;
-  }
+  .done-countdown-ring .ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; }
 
   .webview-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
   .webview-frame { width: 100%; height: 100%; border: none; display: block; }
@@ -324,23 +196,15 @@
   .warning-title { font-size: 24px; font-weight: 700; color: white; margin-bottom: 8px; }
   .warning-msg { font-size: 14px; color: rgba(255,255,255,.85); max-width: 360px; line-height: 1.6; margin-bottom: 20px; }
   .warning-count { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-
   .timer-badge-sm.danger { background: var(--danger-bg); border-color: #fecaca; color: var(--danger); animation: timerPulse 1s ease infinite; }
   @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:.7} }
 
-  /* MOBILE OPTIMIZATION */
   @media (max-width: 768px) {
-    body { font-size: 16px; } /* Prevent zoom on iOS */
+    body { font-size: 16px; }
     .login-card { padding: 24px 18px; width: 95%; }
     .form-row { grid-template-columns: 1fr; gap: 14px; }
-    .btn-primary, .btn-secondary, .btn-selesai {
-      min-height: 44px; /* Touch-friendly size */
-      font-size: 14px;
-    }
-    input[type="text"], select {
-      min-height: 44px;
-      font-size: 16px; /* Prevent zoom on iOS */
-    }
+    .btn-primary, .btn-secondary, .btn-selesai { min-height: 44px; font-size: 14px; }
+    input[type="text"], select { min-height: 44px; font-size: 16px; }
     label { font-size: 13px; }
     .login-title { font-size: 18px; }
     .login-sub { font-size: 12px; }
@@ -349,7 +213,6 @@
     .info-box { font-size: 11px; padding: 10px 12px; }
     .err-box { font-size: 11px; padding: 10px 12px; }
   }
-
   @media (max-width: 480px) {
     .login-card { padding: 20px 16px; max-width: 100%; }
     .login-logo { margin-bottom: 18px; }
@@ -372,8 +235,6 @@
     .info-box { font-size: 11px; padding: 10px 12px; margin-top: 12px; }
     .err-box { font-size: 11px; padding: 10px 12px; margin-bottom: 10px; }
     .db-badge { font-size: 10px; padding: 3px 8px; }
-    
-    /* Header mobile */
     :root { --header-collapsed-h: 44px; }
     .header-collapsed-bar { padding: 0 10px; height: 44px; }
     .collapsed-name { font-size: 12px; }
@@ -382,31 +243,21 @@
     .violation-badge-sm { padding: 3px 7px; font-size: 10px; }
     .toggle-btn { width: 28px; height: 28px; }
     .toggle-btn svg { width: 12px; height: 12px; }
-    
-    /* Header detail mobile */
     .header-detail { padding: 0 10px 10px; gap: 6px; }
     .detail-card { padding: 8px 10px; }
     .detail-label { font-size: 9px; }
     .detail-value { font-size: 12px; }
-    
-    /* Modal mobile */
-    .confirm-modal, .password-modal { max-width: 90%; padding: 24px 20px; }
-    .confirm-modal-title, .password-modal-title { font-size: 16px; }
-    .confirm-modal-msg, .password-modal-msg { font-size: 12px; }
-    .confirm-modal-actions, .password-modal-actions { gap: 8px; }
-    .confirm-modal-actions button, .password-modal-actions button { padding: 10px; font-size: 13px; }
-    .password-input { padding: 11px 12px; font-size: 16px; }
-    .password-error { font-size: 11px; }
-    
-    /* Warning overlay mobile */
+    .confirm-modal { max-width: 90%; padding: 24px 20px; }
+    .confirm-modal-title { font-size: 16px; }
+    .confirm-modal-msg { font-size: 12px; }
+    .confirm-modal-actions { gap: 8px; }
+    .confirm-modal-actions button { padding: 10px; font-size: 13px; }
     .warning-overlay { padding: 20px; }
     .warning-icon { width: 64px; height: 64px; margin-bottom: 16px; }
     .warning-icon svg { width: 32px; height: 32px; }
     .warning-title { font-size: 20px; }
     .warning-msg { font-size: 13px; }
     .warning-count { font-size: 12px; padding: 6px 14px; }
-    
-    /* Done notification mobile */
     .done-notification { padding: 24px; }
     .done-checkmark { width: 80px; height: 80px; margin-bottom: 16px; }
     .done-checkmark svg { width: 40px; height: 40px; }
@@ -420,7 +271,6 @@
     .done-countdown-ring svg { width: 48px; height: 48px; }
     .done-countdown-ring .ring-num { font-size: 16px; }
   }
-
   @media (max-width: 360px) {
     .login-card { padding: 16px 12px; }
     .login-logo-icon { width: 40px; height: 40px; }
@@ -461,7 +311,6 @@
         <div class="db-dot"></div>
         Terhubung ke: FIRESTORE
       </div>
-
       <div class="form-group">
         <label for="inputRoomCode">Kode Room Ujian</label>
         <div class="room-code-input-wrapper">
@@ -470,9 +319,7 @@
             inputmode="text" oninput="onRoomCodeInput()" />
         </div>
       </div>
-
       <div class="err-box" id="errBox">Kode room tidak ditemukan. Periksa kode dan coba lagi.</div>
-
       <div class="room-info-box" id="roomInfoBox">
         <div class="room-info-title">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -481,7 +328,6 @@
         <div class="room-info-name" id="foundRoomName">—</div>
         <div class="room-info-url" id="foundRoomUrl">—</div>
       </div>
-
       <button class="btn-primary" id="btnCekRoom" onclick="cekRoom()" disabled>Cek &amp; Lanjutkan →</button>
       <div class="info-box"><strong>💡 Cara Masuk</strong>Mintalah kode room dari pengawas/guru, lalu masukkan kodenya di atas.</div>
     </div>
@@ -548,14 +394,10 @@
       <div class="detail-card"><div class="detail-label">No. Peserta</div><div class="detail-value" id="displayId">—</div></div>
       <div class="detail-card"><div class="detail-label">Kelas</div><div class="detail-value" id="displayKelas">—</div></div>
       <div class="detail-card"><div class="detail-label">Ruangan</div><div class="detail-value" id="displayRuangan">—</div></div>
-
-      
       <div class="status-indicator aman full" id="statusIndicator">
         <div class="status-dot"></div>
         <span id="statusText">Sedang Ujian</span>
       </div>
-
-      <!-- TOMBOL SELESAI -->
       <div class="btn-selesai-wrapper">
         <button class="btn-selesai" onclick="konfirmasiSelesai()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -607,33 +449,18 @@
   </div>
   <div class="done-title">Ujian Selesai! 🎉</div>
   <div class="done-subtitle">Jawaban kamu telah berhasil dikumpulkan.<br>Terima kasih sudah mengerjakan dengan baik.</div>
-
   <div class="done-info-row">
-    <div class="done-info-item">
-      <span class="done-info-key">Nama</span>
-      <span class="done-info-val" id="doneNama">—</span>
-    </div>
-    <div class="done-info-item">
-      <span class="done-info-key">Kelas</span>
-      <span class="done-info-val" id="doneKelas">—</span>
-    </div>
-    <div class="done-info-item">
-      <span class="done-info-key">Ruangan</span>
-      <span class="done-info-val" id="doneRuangan">—</span>
-    </div>
-    <div class="done-info-item">
-      <span class="done-info-key">Pelanggaran Tercatat</span>
-      <span class="done-info-val" id="doneViolations">0</span>
-    </div>
+    <div class="done-info-item"><span class="done-info-key">Nama</span><span class="done-info-val" id="doneNama">—</span></div>
+    <div class="done-info-item"><span class="done-info-key">Kelas</span><span class="done-info-val" id="doneKelas">—</span></div>
+    <div class="done-info-item"><span class="done-info-key">Ruangan</span><span class="done-info-val" id="doneRuangan">—</span></div>
+    <div class="done-info-item"><span class="done-info-key">Pelanggaran Tercatat</span><span class="done-info-val" id="doneViolations">0</span></div>
   </div>
-
   <div class="done-countdown">
     Kembali ke halaman utama dalam...
     <div class="done-countdown-ring" id="countdownRingWrapper">
       <svg width="56" height="56" viewBox="0 0 56 56">
         <circle class="ring-bg" cx="28" cy="28" r="22"/>
-        <circle class="ring-fill" id="ringFill" cx="28" cy="28" r="22"
-          stroke-dasharray="138.2" stroke-dashoffset="0"/>
+        <circle class="ring-fill" id="ringFill" cx="28" cy="28" r="22" stroke-dasharray="138.2" stroke-dashoffset="0"/>
       </svg>
       <div class="ring-num" id="countdownNum">5</div>
     </div>
@@ -661,11 +488,75 @@
   let violations=0, timerSeconds=90*60, timerInterval;
   let foundRoomData = null;
   let pesertaDocId = '';
-  let monitoringActive = false; /* flag untuk kontrol monitoring */
+  let monitoringActive = false;
 
   /* ── INIT FIREBASE ── */
   firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
   db = firebaseApp.firestore();
+
+  /* ══════════════════════════════════════════
+     SCREEN STATE DETECTION
+     ─────────────────────────────────────────
+     Tujuan: membedakan antara
+       (A) layar mati / dim → JANGAN bunyikan alarm
+       (B) pindah tab / app lain → BOLEH bunyikan alarm
+
+     Cara kerja:
+     • Saat visibilitychange → hidden, kita catat
+       apakah window masih punya focus sesaat sebelum
+       event (artinya layar mati, bukan pindah app).
+     • window.blur TANPA visibilitychange = pindah app
+       (foreground tetap visible tapi fokus hilang).
+     • Kita juga pakai timestamp: jika blur & hidden
+       terjadi dalam selang < 300 ms → diasumsikan
+       layar mati / lock screen.
+  ══════════════════════════════════════════ */
+  let _screenIsOn     = true;   // asumsi awal layar nyala
+  let _blurTimestamp  = 0;      // kapan window blur terakhir
+  let _hiddenTimestamp = 0;     // kapan visibility hidden terakhir
+  const SCREEN_OFF_THRESHOLD_MS = 300; // jarak blur→hidden yg dianggap "layar mati"
+
+  /**
+   * Kembalikan true jika kondisi saat ini menunjukkan
+   * layar mati / lock-screen / dim, bukan pindah tab/app.
+   *
+   * Logika:
+   *  - Jika document.hidden == true DAN
+   *    selisih waktu antara blur dan hidden sangat kecil
+   *    (< SCREEN_OFF_THRESHOLD_MS), kemungkinan besar
+   *    itu tombol power / auto-lock, bukan user pindah app.
+   *  - Di Android Chrome: layar mati → visibilitychange
+   *    hidden langsung tanpa blur, jadi _blurTimestamp == 0
+   *    atau selisihnya sangat besar.
+   *    Kita tangani dengan memeriksa apakah window masih
+   *    focused saat hidden (document.hasFocus() tetap true
+   *    sesaat di beberapa browser).
+   */
+  function _isScreenOff() {
+    if (!document.hidden) return false; // layar jelas nyala
+
+    const blurHiddenGap = _hiddenTimestamp - _blurTimestamp;
+
+    // Kasus 1: hidden terjadi sangat cepat setelah blur
+    // → power button / auto-lock
+    if (_blurTimestamp > 0 && blurHiddenGap >= 0 && blurHiddenGap < SCREEN_OFF_THRESHOLD_MS) {
+      return true;
+    }
+
+    // Kasus 2: hidden terjadi TANPA blur sebelumnya
+    // (blur belum pernah terjadi, atau sudah lama)
+    // → di banyak Android device, layar mati tidak
+    //   selalu mengirim blur terlebih dulu.
+    //   Jika gap > 2 detik atau blur belum pernah terjadi
+    //   sejak ujian mulai, kita anggap layar mati.
+    if (_blurTimestamp === 0 || blurHiddenGap > 2000) {
+      return true;
+    }
+
+    // Kasus 3: blur sudah terjadi sebelum hidden,
+    // dengan jeda wajar (300ms - 2000ms) → pindah app
+    return false;
+  }
 
   /* ══════════════════════════════════════════
      AUDIO SYSTEM — MOBILE-COMPATIBLE
@@ -680,6 +571,11 @@
   let _alertEscTimer   = null;
   let _alertBeepTimer  = null;
   let _alertTtsTimer   = null;
+
+  // Ambulance alarm variables
+  let _ambulanceActive = false;
+  let _ambulanceSirenTimer = null;
+  let _ambulanceCycleStartTime = null;
 
   function _initAudio() {
     if (_audioCtx) {
@@ -711,50 +607,55 @@
   }
 
   function _playBeep(volume) {
+    // DISABLED: Alarm sounds turned off
+    return;
+  }
+
+  function _playAmbulanceSiren(volume) {
     if (!_audioCtx) return;
-    if (_audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); return; }
+    if (_audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
     try {
-      const now  = _audioCtx.currentTime;
-      const osc1 = _audioCtx.createOscillator();
-      const osc2 = _audioCtx.createOscillator();
-      const gain = _audioCtx.createGain();
-      const lfo  = _audioCtx.createOscillator();
-      
-      // Setup LFO (Low Frequency Oscillator) untuk modulation
+      const now = _audioCtx.currentTime;
+      const oscillator = _audioCtx.createOscillator();
+      const lfo = _audioCtx.createOscillator();
       const lfoGain = _audioCtx.createGain();
-      lfo.frequency.setValueAtTime(3, now); // 3 Hz modulation
-      lfoGain.gain.setValueAtTime(350, now); // Modulation depth
+      const gain = _audioCtx.createGain();
+      const filter = _audioCtx.createBiquadFilter();
+      
+      // LFO untuk sweep effect (ambulance effect)
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(3, now); // 3 Hz sweep
+      lfoGain.gain.setValueAtTime(400, now); // Sweep depth (400 Hz range)
       lfo.connect(lfoGain);
+      lfoGain.connect(oscillator.frequency);
       
-      // Oscillator 1 - high frequency base
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(1000, now);
-      lfoGain.connect(osc1.frequency);
+      // Oscillator dengan base frequency
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(1000, now);
       
-      // Oscillator 2 - low frequency base
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(600, now);
+      // Filter untuk lebih berwarna
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(3000, now);
+      filter.Q.setValueAtTime(5, now);
       
-      // Setup gain envelope
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(volume, now + 0.05);
-      gain.gain.setValueAtTime(volume, now + 0.6);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+      // Gain envelope
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.linearRampToValueAtTime(volume * 0.8, now + 0.1);
+      gain.gain.setValueAtTime(volume * 0.8, now + 0.45);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
       
       // Connect everything
-      osc1.connect(gain);
-      osc2.connect(gain);
+      oscillator.connect(filter);
+      filter.connect(gain);
       gain.connect(_audioCtx.destination);
       
-      // Start oscillators
-      osc1.start(now);
-      osc2.start(now);
+      // Start all oscillators
+      oscillator.start(now);
       lfo.start(now);
       
-      // Stop oscillators
-      osc1.stop(now + 0.8);
-      osc2.stop(now + 0.8);
-      lfo.stop(now + 0.8);
+      // Stop all oscillators
+      oscillator.stop(now + 0.5);
+      lfo.stop(now + 0.5);
     } catch (e) {}
   }
 
@@ -785,31 +686,33 @@
 
   function startEscalatingAlert() {
     if (_alertActive) return;
+
+    // ── GUARD: jangan bunyikan alarm jika layar mati/dim ──
+    if (_isScreenOff()) {
+      console.log('[Monitor] Layar mati/dim — alarm diabaikan');
+      return;
+    }
+
     _alertActive  = true;
     _alertVolume  = 0.3;
     if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
-    
-    // Beep Pattern: 5 seconds ON, 30 seconds OFF, repeat (35 second cycle)
-    const SOUND_ON_DURATION = 5000;    // 5 seconds
-    const SOUND_OFF_DURATION = 30000;  // 30 seconds
-    const SOUND_CYCLE_DURATION = SOUND_ON_DURATION + SOUND_OFF_DURATION; // 35 seconds total
-    
-    // TTS Pattern: 10 seconds ON, 20 seconds OFF, repeat (30 second cycle)
-    const TTS_ON_DURATION = 10000;     // 10 seconds
-    const TTS_OFF_DURATION = 20000;    // 20 seconds (pause)
-    const TTS_CYCLE_DURATION = TTS_ON_DURATION + TTS_OFF_DURATION; // 30 seconds total
-    
+
+    const SOUND_ON_DURATION   = 8000;
+    const SOUND_OFF_DURATION  = 30000;
+    const SOUND_CYCLE_DURATION = SOUND_ON_DURATION + SOUND_OFF_DURATION;
+    const TTS_ON_DURATION     = 10000;
+    const TTS_OFF_DURATION    = 20000;
+    const TTS_CYCLE_DURATION  = TTS_ON_DURATION + TTS_OFF_DURATION;
+
     let soundIsPlaying = true;
-    let ttsIsPlaying = true;
+    let ttsIsPlaying   = true;
     let soundCycleStartTime = Date.now();
-    let ttsCycleStartTime = Date.now();
-    
+    let ttsCycleStartTime   = Date.now();
+
     function updateSoundState() {
       if (!_alertActive) return;
-      
       const elapsedInSoundCycle = (Date.now() - soundCycleStartTime) % SOUND_CYCLE_DURATION;
       const shouldPlay = elapsedInSoundCycle < SOUND_ON_DURATION;
-      
       if (shouldPlay && !soundIsPlaying) {
         soundIsPlaying = true;
         _alertBeepTimer = setInterval(() => {
@@ -818,19 +721,14 @@
         }, 600);
       } else if (!shouldPlay && soundIsPlaying) {
         soundIsPlaying = false;
-        if (_alertBeepTimer) {
-          clearInterval(_alertBeepTimer);
-          _alertBeepTimer = null;
-        }
+        if (_alertBeepTimer) { clearInterval(_alertBeepTimer); _alertBeepTimer = null; }
       }
     }
-    
+
     function updateTtsState() {
       if (!_alertActive) return;
-      
       const elapsedInTtsCycle = (Date.now() - ttsCycleStartTime) % TTS_CYCLE_DURATION;
       const shouldPlayTts = elapsedInTtsCycle < TTS_ON_DURATION;
-      
       if (shouldPlayTts && !ttsIsPlaying) {
         ttsIsPlaying = true;
         _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
@@ -840,28 +738,22 @@
         }, 2500);
       } else if (!shouldPlayTts && ttsIsPlaying) {
         ttsIsPlaying = false;
-        if (_alertTtsTimer) {
-          clearInterval(_alertTtsTimer);
-          _alertTtsTimer = null;
-        }
+        if (_alertTtsTimer) { clearInterval(_alertTtsTimer); _alertTtsTimer = null; }
         try { window.speechSynthesis.cancel(); } catch (e) {}
       }
     }
-    
-    // Play initial beep and start pattern
+
     _playBeep(_alertVolume);
     _alertBeepTimer = setInterval(() => {
       if (!_alertActive) { clearInterval(_alertBeepTimer); return; }
       _playBeep(_alertVolume);
     }, 600);
-    
-    // Check and update sound state every 100ms
+
     _alertEscTimer = setInterval(() => {
       updateSoundState();
       updateTtsState();
     }, 100);
-    
-    // Play initial TTS message
+
     _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
     _alertTtsTimer = setInterval(() => {
       if (!_alertActive || !ttsIsPlaying) return;
@@ -876,6 +768,49 @@
     clearInterval(_alertTtsTimer);
     _alertEscTimer = _alertBeepTimer = _alertTtsTimer = null;
     try { window.speechSynthesis.cancel(); } catch (e) {}
+  }
+
+  function startAmbulanceAlarm() {
+    if (_ambulanceActive) return;
+    _ambulanceActive = true;
+    _ambulanceCycleStartTime = Date.now();
+    _initAudio();
+    
+    const SIREN_ON = 8000;   // 8 seconds on
+    const SIREN_OFF = 30000; // 30 seconds off
+    const CYCLE = SIREN_ON + SIREN_OFF; // 38 seconds total
+    
+    let sirenIsPlaying = true;
+    
+    // Initial siren
+    _playAmbulanceSiren(0.7);
+    
+    _ambulanceSirenTimer = setInterval(() => {
+      if (!_ambulanceActive) {
+        clearInterval(_ambulanceSirenTimer);
+        return;
+      }
+      
+      const elapsed = (Date.now() - _ambulanceCycleStartTime) % CYCLE;
+      const shouldPlay = elapsed < SIREN_ON;
+      
+      if (shouldPlay && !sirenIsPlaying) {
+        sirenIsPlaying = true;
+        _playAmbulanceSiren(0.7);
+      } else if (shouldPlay && sirenIsPlaying) {
+        _playAmbulanceSiren(0.7);
+      } else if (!shouldPlay) {
+        sirenIsPlaying = false;
+      }
+    }, 400); // Play siren every 400ms during ON period
+  }
+
+  function stopAmbulanceAlarm() {
+    _ambulanceActive = false;
+    if (_ambulanceSirenTimer) {
+      clearInterval(_ambulanceSirenTimer);
+      _ambulanceSirenTimer = null;
+    }
   }
 
   function speakAlert(text) {
@@ -990,7 +925,6 @@
     document.getElementById('displayId').textContent      = id;
     document.getElementById('displayKelas').textContent   = kelas;
     document.getElementById('displayRuangan').textContent = ruangan;
-    
 
     document.getElementById('examFrame').src = examUrl;
 
@@ -1041,13 +975,14 @@
   }
 
   async function updateStatus(status) {
-    if (!monitoringActive) return; /* jangan update jika monitoring sudah dimatikan */
+    if (!monitoringActive) return;
     const indicator = document.getElementById('statusIndicator');
     const text      = document.getElementById('statusText');
     indicator.className = 'status-indicator full';
     if (status === 'aman')        { indicator.classList.add('aman');    text.textContent = 'Sedang Ujian'; }
     else if (status === 'tab')    { indicator.classList.add('warning'); text.textContent = 'Buka Tab Lain'; }
     else if (status === 'keluar') { indicator.classList.add('danger');  text.textContent = 'Keluar Halaman'; }
+    else if (status === 'layarMati') { indicator.classList.add('aman'); text.textContent = 'Layar Mati'; }
 
     if (pesertaDocRef) {
       try {
@@ -1057,7 +992,7 @@
   }
 
   async function addViolation(type) {
-    if (!monitoringActive) return; /* abaikan pelanggaran jika monitoring mati */
+    if (!monitoringActive) return;
     violations++;
     if (pesertaDocRef) {
       try {
@@ -1084,45 +1019,108 @@
 
   /* ══════════════════════════════════════════
      MONITORING
+     ─────────────────────────────────────────
+     Alur deteksi layar mati vs pindah app:
+
+     [Layar mati / lock screen]
+       → di banyak device: visibilitychange(hidden)
+         terjadi TANPA atau sesaat setelah blur
+       → _isScreenOff() → true → alarm TIDAK berbunyi
+       → status Firestore → 'layarMati' (tidak dihitung pelanggaran)
+
+     [Pindah tab / app lain saat layar nyala]
+       → window.blur dulu, lalu visibilitychange(hidden)
+         dengan jeda 300ms–2000ms
+       → _isScreenOff() → false → alarm BERBUNYI
+       → status Firestore → 'tab' + pelanggaran +1
+
+     [Kembali ke halaman]
+       → visibilitychange(visible) / window.focus
+       → alarm dihentikan, status → 'aman'
   ══════════════════════════════════════════ */
   function setupMonitoring() {
     monitoringActive = true;
 
+    /* ── Reset timestamp saat ujian mulai ── */
+    _blurTimestamp   = 0;
+    _hiddenTimestamp = 0;
+    _screenIsOn      = true;
+
+    /* ── visibilitychange ── */
     document.addEventListener('visibilitychange', () => {
       if (!monitoringActive) return;
+
       if (document.hidden) {
-        updateStatus('tab');
-        addViolation('tab');
-        startEscalatingAlert();
+        _hiddenTimestamp = Date.now();
+
+        if (_isScreenOff()) {
+          /* Layar mati / lock screen → catat status saja, TIDAK alarm */
+          console.log('[Monitor] Layar mati terdeteksi — tidak ada alarm');
+          _screenIsOn = false;
+          updateStatus('layarMati');
+          /* Pastikan alarm tidak aktif */
+          stopEscalatingAlert();
+          stopAmbulanceAlarm();
+        } else {
+          /* Pindah tab / app saat layar nyala */
+          console.log('[Monitor] Pindah tab/app terdeteksi — alarm dibunyikan');
+          _screenIsOn = false;
+          updateStatus('tab');
+          addViolation('tab');
+          startEscalatingAlert();
+          startAmbulanceAlarm();
+        }
       } else {
+        /* Layar nyala kembali / kembali ke halaman */
+        _screenIsOn      = true;
+        _blurTimestamp   = 0;
+        _hiddenTimestamp = 0;
         updateStatus('aman');
         stopEscalatingAlert();
+        stopAmbulanceAlarm();
         if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
       }
     });
 
+    /* ── window.blur ── */
     let iframeHasFocus = false;
     document.getElementById('examFrame').addEventListener('mouseenter', () => { iframeHasFocus = true; });
     document.getElementById('examFrame').addEventListener('mouseleave', () => { iframeHasFocus = false; });
 
     window.addEventListener('blur', () => {
       if (!monitoringActive) return;
+      _blurTimestamp = Date.now(); // catat waktu blur
+
       if (!document.hidden) {
+        /* Window blur tapi halaman masih visible:
+           Jika iframe yang fokus → normal (user klik di dalam soal)
+           Jika bukan iframe → user pindah ke app lain / notifikasi */
         if (iframeHasFocus) {
           updateStatus('aman');
         } else {
+          /* Tunggu sebentar: jika visibilitychange menyusul
+             dalam < SCREEN_OFF_THRESHOLD_MS, _isScreenOff()
+             akan menangkap kasus layar mati */
           updateStatus('keluar');
           addViolation('keluar');
           startEscalatingAlert();
+          startAmbulanceAlarm();
         }
       }
+      /* Jika document.hidden sudah true saat blur,
+         visibilitychange handler sudah tangani lebih dulu */
     });
 
+    /* ── window.focus ── */
     window.addEventListener('focus', () => {
       if (!monitoringActive) return;
-      iframeHasFocus = false;
+      iframeHasFocus   = false;
+      _screenIsOn      = true;
+      _blurTimestamp   = 0;
+      _hiddenTimestamp = 0;
       updateStatus('aman');
       stopEscalatingAlert();
+      stopAmbulanceAlarm();
       if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
     });
 
@@ -1131,7 +1129,7 @@
     }, { passive: true });
 
     window.addEventListener('beforeunload', (e) => {
-      if (!monitoringActive) return; /* tidak blokir jika sudah selesai */
+      if (!monitoringActive) return;
       stopEscalatingAlert();
       if (pesertaDocRef) {
         const url = `https://firestore.googleapis.com/v1/projects/pengawas-asaj78/databases/(default)/documents/rooms/${roomCode}/peserta/${pesertaDocId}?updateMask.fieldPaths=status&updateMask.fieldPaths=lastUpdate`;
@@ -1161,7 +1159,6 @@
     stopEscalatingAlert();
     clearInterval(timerInterval);
     if (examUrlUnsubscribe) { examUrlUnsubscribe(); examUrlUnsubscribe = null; }
-    /* Tutup semua overlay aktif */
     document.getElementById('warningOverlay').classList.remove('show');
     document.getElementById('confirmModal').classList.remove('show');
   }
@@ -1180,13 +1177,8 @@
   }
 
   async function selesaiManual() {
-    /* 1. Tutup modal konfirmasi */
     document.getElementById('confirmModal').classList.remove('show');
-
-    /* 2. Matikan semua fungsi keamanan */
     nonaktifkanKeamanan();
-
-    /* 3. Update status ke Firestore */
     if (pesertaDocRef) {
       try {
         await pesertaDocRef.update({
@@ -1195,43 +1187,30 @@
         });
       } catch(e) { console.error('selesaiManual Firestore error:', e); }
     }
-
-    /* 4. Isi data di notifikasi */
     document.getElementById('doneNama').textContent      = pesertaNama;
     document.getElementById('doneKelas').textContent     = pesertaKelas;
     document.getElementById('doneRuangan').textContent   = pesertaRuangan;
     document.getElementById('doneViolations').textContent = violations + ' kali';
-
-    /* 5. Tampilkan notifikasi selesai */
     document.getElementById('doneNotification').classList.add('show');
-
-    /* 6. TTS */
     speakOnBtn('Selamat, ujian kamu telah selesai. Terima kasih.');
 
-    /* 7. Countdown 5 detik lalu kembali ke halaman room */
     let sisa = 5;
-    const circumference = 2 * Math.PI * 22; // 138.23...
+    const circumference = 2 * Math.PI * 22;
     const ringFill = document.getElementById('ringFill');
-
     function updateRing(n) {
       document.getElementById('countdownNum').textContent = n;
       const offset = circumference * (1 - n / 5);
       ringFill.style.strokeDashoffset = offset;
     }
     updateRing(sisa);
-
     const countdownInterval = setInterval(() => {
       sisa--;
       updateRing(sisa);
-      if (sisa <= 0) {
-        clearInterval(countdownInterval);
-        kembaliKeHalamanRoom();
-      }
+      if (sisa <= 0) { clearInterval(countdownInterval); kembaliKeHalamanRoom(); }
     }, 1000);
   }
 
   function kembaliKeHalamanRoom() {
-    /* Reset state */
     violations    = 0;
     timerSeconds  = 90 * 60;
     pesertaNama = pesertaId = pesertaKelas = pesertaRuangan = '';
@@ -1240,8 +1219,10 @@
     pesertaDocId   = '';
     foundRoomData  = null;
     monitoringActive = false;
+    _blurTimestamp   = 0;
+    _hiddenTimestamp = 0;
+    _screenIsOn      = true;
 
-    /* Reset UI */
     document.getElementById('doneNotification').classList.remove('show');
     document.getElementById('examScreen').style.display = 'none';
     document.getElementById('examFrame').src = 'about:blank';
@@ -1249,7 +1230,6 @@
     document.getElementById('violationCount').textContent = '0';
     document.getElementById('timerBadgeSm').classList.remove('danger');
 
-    /* Reset step ke 1 */
     document.getElementById('formStep2').classList.remove('active');
     document.getElementById('formStep1').classList.add('active');
     document.getElementById('step1Num').className   = 'step-num active';
@@ -1264,7 +1244,6 @@
     document.getElementById('roomInfoBox').classList.remove('show');
     document.getElementById('errBox').classList.remove('show');
 
-    /* Tampilkan login screen */
     document.getElementById('loginScreen').style.display = 'flex';
   }
 
@@ -1277,10 +1256,8 @@
       const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
       const s = (timerSeconds % 60).toString().padStart(2, '0');
       document.getElementById('timerDisplay').textContent = `${m}:${s}`;
-
       if (timerSeconds === 300)  speakOnBtn('Perhatian, waktu ujian tersisa lima menit');
       if (timerSeconds === 60)   speakOnBtn('Waktu ujian tersisa satu menit');
-
       if (timerSeconds <= 300) document.getElementById('timerBadgeSm').classList.add('danger');
       if (timerSeconds <= 0)  { clearInterval(timerInterval); selesaiOtomatis(); }
     }, 1000);
