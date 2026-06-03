@@ -697,7 +697,7 @@
     _alertVolume  = 0.3;
     if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
 
-    const SOUND_ON_DURATION   = 8000;
+    const SOUND_ON_DURATION   = 10000;
     const SOUND_OFF_DURATION  = 30000;
     const SOUND_CYCLE_DURATION = SOUND_ON_DURATION + SOUND_OFF_DURATION;
     const TTS_ON_DURATION     = 10000;
