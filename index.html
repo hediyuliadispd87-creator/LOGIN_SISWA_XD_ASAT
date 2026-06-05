@@ -496,86 +496,34 @@
 
   /* ══════════════════════════════════════════
      SCREEN STATE DETECTION
-     ─────────────────────────────────────────
-     Tujuan: membedakan antara
-       (A) layar mati / dim → JANGAN bunyikan alarm
-       (B) pindah tab / app lain → BOLEH bunyikan alarm
-
-     Cara kerja:
-     • Saat visibilitychange → hidden, kita catat
-       apakah window masih punya focus sesaat sebelum
-       event (artinya layar mati, bukan pindah app).
-     • window.blur TANPA visibilitychange = pindah app
-       (foreground tetap visible tapi fokus hilang).
-     • Kita juga pakai timestamp: jika blur & hidden
-       terjadi dalam selang < 300 ms → diasumsikan
-       layar mati / lock screen.
   ══════════════════════════════════════════ */
-  let _screenIsOn     = true;   // asumsi awal layar nyala
-  let _blurTimestamp  = 0;      // kapan window blur terakhir
-  let _hiddenTimestamp = 0;     // kapan visibility hidden terakhir
-  const SCREEN_OFF_THRESHOLD_MS = 300; // jarak blur→hidden yg dianggap "layar mati"
+  let _screenIsOn      = true;
+  let _blurTimestamp   = 0;
+  let _hiddenTimestamp = 0;
+  const SCREEN_OFF_THRESHOLD_MS = 300;
 
-  /**
-   * Kembalikan true jika kondisi saat ini menunjukkan
-   * layar mati / lock-screen / dim, bukan pindah tab/app.
-   *
-   * Logika:
-   *  - Jika document.hidden == true DAN
-   *    selisih waktu antara blur dan hidden sangat kecil
-   *    (< SCREEN_OFF_THRESHOLD_MS), kemungkinan besar
-   *    itu tombol power / auto-lock, bukan user pindah app.
-   *  - Di Android Chrome: layar mati → visibilitychange
-   *    hidden langsung tanpa blur, jadi _blurTimestamp == 0
-   *    atau selisihnya sangat besar.
-   *    Kita tangani dengan memeriksa apakah window masih
-   *    focused saat hidden (document.hasFocus() tetap true
-   *    sesaat di beberapa browser).
-   */
   function _isScreenOff() {
-    if (!document.hidden) return false; // layar jelas nyala
-
+    if (!document.hidden) return false;
     const blurHiddenGap = _hiddenTimestamp - _blurTimestamp;
-
-    // Kasus 1: hidden terjadi sangat cepat setelah blur
-    // → power button / auto-lock
     if (_blurTimestamp > 0 && blurHiddenGap >= 0 && blurHiddenGap < SCREEN_OFF_THRESHOLD_MS) {
       return true;
     }
-
-    // Kasus 2: hidden terjadi TANPA blur sebelumnya
-    // (blur belum pernah terjadi, atau sudah lama)
-    // → di banyak Android device, layar mati tidak
-    //   selalu mengirim blur terlebih dulu.
-    //   Jika gap > 2 detik atau blur belum pernah terjadi
-    //   sejak ujian mulai, kita anggap layar mati.
     if (_blurTimestamp === 0 || blurHiddenGap > 2000) {
       return true;
     }
-
-    // Kasus 3: blur sudah terjadi sebelum hidden,
-    // dengan jeda wajar (300ms - 2000ms) → pindah app
     return false;
   }
 
   /* ══════════════════════════════════════════
-     AUDIO SYSTEM — MOBILE-COMPATIBLE
+     AUDIO SYSTEM — TTS ONLY (SIRINE DIHAPUS)
   ══════════════════════════════════════════ */
-  let _audioCtx        = null;
-  let _masterGain      = null;
-  let _audioUnlocked   = false;
+  let _audioCtx      = null;
+  let _masterGain    = null;
+  let _audioUnlocked = false;
 
-  let _alertActive     = false;
-  let _alertVolume     = 0.05;
-  let _alertStep       = 0.05;
-  let _alertEscTimer   = null;
-  let _alertBeepTimer  = null;
-  let _alertTtsTimer   = null;
-
-  // Ambulance alarm variables
-  let _ambulanceActive = false;
-  let _ambulanceSirenTimer = null;
-  let _ambulanceCycleStartTime = null;
+  let _alertActive   = false;
+  let _alertEscTimer = null;
+  let _alertTtsTimer = null;
 
   function _initAudio() {
     if (_audioCtx) {
@@ -606,59 +554,6 @@
     } catch (e) {}
   }
 
-  function _playBeep(volume) {
-    // DISABLED: Alarm sounds turned off
-    return;
-  }
-
-  function _playAmbulanceSiren(volume) {
-    if (!_audioCtx) return;
-    if (_audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
-    try {
-      const now = _audioCtx.currentTime;
-      const oscillator = _audioCtx.createOscillator();
-      const lfo = _audioCtx.createOscillator();
-      const lfoGain = _audioCtx.createGain();
-      const gain = _audioCtx.createGain();
-      const filter = _audioCtx.createBiquadFilter();
-      
-      // LFO untuk sweep effect (ambulance effect)
-      lfo.type = 'sine';
-      lfo.frequency.setValueAtTime(3, now); // 3 Hz sweep
-      lfoGain.gain.setValueAtTime(400, now); // Sweep depth (400 Hz range)
-      lfo.connect(lfoGain);
-      lfoGain.connect(oscillator.frequency);
-      
-      // Oscillator dengan base frequency
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(1000, now);
-      
-      // Filter untuk lebih berwarna
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(3000, now);
-      filter.Q.setValueAtTime(5, now);
-      
-      // Gain envelope
-      gain.gain.setValueAtTime(volume, now);
-      gain.gain.linearRampToValueAtTime(volume * 0.8, now + 0.1);
-      gain.gain.setValueAtTime(volume * 0.8, now + 0.45);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-      
-      // Connect everything
-      oscillator.connect(filter);
-      filter.connect(gain);
-      gain.connect(_audioCtx.destination);
-      
-      // Start all oscillators
-      oscillator.start(now);
-      lfo.start(now);
-      
-      // Stop all oscillators
-      oscillator.stop(now + 0.5);
-      lfo.stop(now + 0.5);
-    } catch (e) {}
-  }
-
   function _speakTTS(text, volume) {
     if (!window.speechSynthesis) return;
     try {
@@ -686,136 +581,57 @@
 
   function startEscalatingAlert() {
     if (_alertActive) return;
-
-    // ── GUARD: jangan bunyikan alarm jika layar mati/dim ──
     if (_isScreenOff()) {
       console.log('[Monitor] Layar mati/dim — alarm diabaikan');
       return;
     }
-
-    _alertActive  = true;
-    _alertVolume  = 0.3;
+    _alertActive = true;
     if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
 
-    const SOUND_ON_DURATION   = 10000;
-    const SOUND_OFF_DURATION  = 30000;
-    const SOUND_CYCLE_DURATION = SOUND_ON_DURATION + SOUND_OFF_DURATION;
-    const TTS_ON_DURATION     = 10000;
-    const TTS_OFF_DURATION    = 20000;
-    const TTS_CYCLE_DURATION  = TTS_ON_DURATION + TTS_OFF_DURATION;
+    const TTS_ON_DURATION  = 10000;
+    const TTS_OFF_DURATION = 20000;
+    const TTS_CYCLE        = TTS_ON_DURATION + TTS_OFF_DURATION;
 
-    let soundIsPlaying = true;
-    let ttsIsPlaying   = true;
-    let soundCycleStartTime = Date.now();
-    let ttsCycleStartTime   = Date.now();
-
-    function updateSoundState() {
-      if (!_alertActive) return;
-      const elapsedInSoundCycle = (Date.now() - soundCycleStartTime) % SOUND_CYCLE_DURATION;
-      const shouldPlay = elapsedInSoundCycle < SOUND_ON_DURATION;
-      if (shouldPlay && !soundIsPlaying) {
-        soundIsPlaying = true;
-        _alertBeepTimer = setInterval(() => {
-          if (!_alertActive || !soundIsPlaying) return;
-          _playBeep(_alertVolume);
-        }, 600);
-      } else if (!shouldPlay && soundIsPlaying) {
-        soundIsPlaying = false;
-        if (_alertBeepTimer) { clearInterval(_alertBeepTimer); _alertBeepTimer = null; }
-      }
-    }
+    let ttsIsPlaying       = true;
+    let ttsCycleStartTime  = Date.now();
 
     function updateTtsState() {
       if (!_alertActive) return;
-      const elapsedInTtsCycle = (Date.now() - ttsCycleStartTime) % TTS_CYCLE_DURATION;
-      const shouldPlayTts = elapsedInTtsCycle < TTS_ON_DURATION;
-      if (shouldPlayTts && !ttsIsPlaying) {
+      const elapsed       = (Date.now() - ttsCycleStartTime) % TTS_CYCLE;
+      const shouldPlay    = elapsed < TTS_ON_DURATION;
+      if (shouldPlay && !ttsIsPlaying) {
         ttsIsPlaying = true;
-        _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+        _speakTTS('ANDA MEMBUKA APLIKASI LAIN', 0.3);
         _alertTtsTimer = setInterval(() => {
           if (!_alertActive || !ttsIsPlaying) return;
-          _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+          _speakTTS('ANDA MEMBUKA APLIKASI LAIN', 0.3);
         }, 2500);
-      } else if (!shouldPlayTts && ttsIsPlaying) {
+      } else if (!shouldPlay && ttsIsPlaying) {
         ttsIsPlaying = false;
         if (_alertTtsTimer) { clearInterval(_alertTtsTimer); _alertTtsTimer = null; }
         try { window.speechSynthesis.cancel(); } catch (e) {}
       }
     }
 
-    _playBeep(_alertVolume);
-    _alertBeepTimer = setInterval(() => {
-      if (!_alertActive) { clearInterval(_alertBeepTimer); return; }
-      _playBeep(_alertVolume);
-    }, 600);
-
-    _alertEscTimer = setInterval(() => {
-      updateSoundState();
-      updateTtsState();
-    }, 100);
-
-    _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+    _speakTTS('ANDA MEMBUKA APLIKASI LAIN', 0.3);
     _alertTtsTimer = setInterval(() => {
       if (!_alertActive || !ttsIsPlaying) return;
-      _speakTTS('ANDA MEMBUKA APLIKASI LAIN', _alertVolume);
+      _speakTTS('ANDA MEMBUKA APLIKASI LAIN', 0.3);
     }, 2500);
+
+    _alertEscTimer = setInterval(() => { updateTtsState(); }, 100);
   }
 
   function stopEscalatingAlert() {
     _alertActive = false;
     clearInterval(_alertEscTimer);
-    clearInterval(_alertBeepTimer);
     clearInterval(_alertTtsTimer);
-    _alertEscTimer = _alertBeepTimer = _alertTtsTimer = null;
+    _alertEscTimer = _alertTtsTimer = null;
     try { window.speechSynthesis.cancel(); } catch (e) {}
-  }
-
-  function startAmbulanceAlarm() {
-    if (_ambulanceActive) return;
-    _ambulanceActive = true;
-    _ambulanceCycleStartTime = Date.now();
-    _initAudio();
-    
-    const SIREN_ON = 10000;   // 8 seconds on
-    const SIREN_OFF = 30000; // 30 seconds off
-    const CYCLE = SIREN_ON + SIREN_OFF; // 38 seconds total
-    
-    let sirenIsPlaying = true;
-    
-    // Initial siren
-    _playAmbulanceSiren(0.7);
-    
-    _ambulanceSirenTimer = setInterval(() => {
-      if (!_ambulanceActive) {
-        clearInterval(_ambulanceSirenTimer);
-        return;
-      }
-      
-      const elapsed = (Date.now() - _ambulanceCycleStartTime) % CYCLE;
-      const shouldPlay = elapsed < SIREN_ON;
-      
-      if (shouldPlay && !sirenIsPlaying) {
-        sirenIsPlaying = true;
-        _playAmbulanceSiren(0.7);
-      } else if (shouldPlay && sirenIsPlaying) {
-        _playAmbulanceSiren(0.7);
-      } else if (!shouldPlay) {
-        sirenIsPlaying = false;
-      }
-    }, 400); // Play siren every 400ms during ON period
-  }
-
-  function stopAmbulanceAlarm() {
-    _ambulanceActive = false;
-    if (_ambulanceSirenTimer) {
-      clearInterval(_ambulanceSirenTimer);
-      _ambulanceSirenTimer = null;
-    }
   }
 
   function speakAlert(text) {
     _initAudio();
-    _playBeep(0.9);
     setTimeout(() => _speakTTS(text, 1.0), 150);
   }
 
@@ -1019,99 +835,57 @@
 
   /* ══════════════════════════════════════════
      MONITORING
-     ─────────────────────────────────────────
-     Alur deteksi layar mati vs pindah app:
-
-     [Layar mati / lock screen]
-       → di banyak device: visibilitychange(hidden)
-         terjadi TANPA atau sesaat setelah blur
-       → _isScreenOff() → true → alarm TIDAK berbunyi
-       → status Firestore → 'layarMati' (tidak dihitung pelanggaran)
-
-     [Pindah tab / app lain saat layar nyala]
-       → window.blur dulu, lalu visibilitychange(hidden)
-         dengan jeda 300ms–2000ms
-       → _isScreenOff() → false → alarm BERBUNYI
-       → status Firestore → 'tab' + pelanggaran +1
-
-     [Kembali ke halaman]
-       → visibilitychange(visible) / window.focus
-       → alarm dihentikan, status → 'aman'
   ══════════════════════════════════════════ */
   function setupMonitoring() {
     monitoringActive = true;
-
-    /* ── Reset timestamp saat ujian mulai ── */
     _blurTimestamp   = 0;
     _hiddenTimestamp = 0;
     _screenIsOn      = true;
 
-    /* ── visibilitychange ── */
     document.addEventListener('visibilitychange', () => {
       if (!monitoringActive) return;
-
       if (document.hidden) {
         _hiddenTimestamp = Date.now();
-
         if (_isScreenOff()) {
-          /* Layar mati / lock screen → catat status saja, TIDAK alarm */
           console.log('[Monitor] Layar mati terdeteksi — tidak ada alarm');
           _screenIsOn = false;
           updateStatus('layarMati');
-          /* Pastikan alarm tidak aktif */
           stopEscalatingAlert();
-          stopAmbulanceAlarm();
         } else {
-          /* Pindah tab / app saat layar nyala */
           console.log('[Monitor] Pindah tab/app terdeteksi — alarm dibunyikan');
           _screenIsOn = false;
           updateStatus('tab');
           addViolation('tab');
           startEscalatingAlert();
-          startAmbulanceAlarm();
         }
       } else {
-        /* Layar nyala kembali / kembali ke halaman */
         _screenIsOn      = true;
         _blurTimestamp   = 0;
         _hiddenTimestamp = 0;
         updateStatus('aman');
         stopEscalatingAlert();
-        stopAmbulanceAlarm();
         if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
       }
     });
 
-    /* ── window.blur ── */
     let iframeHasFocus = false;
     document.getElementById('examFrame').addEventListener('mouseenter', () => { iframeHasFocus = true; });
     document.getElementById('examFrame').addEventListener('mouseleave', () => { iframeHasFocus = false; });
 
     window.addEventListener('blur', () => {
       if (!monitoringActive) return;
-      _blurTimestamp = Date.now(); // catat waktu blur
-
+      _blurTimestamp = Date.now();
       if (!document.hidden) {
-        /* Window blur tapi halaman masih visible:
-           Jika iframe yang fokus → normal (user klik di dalam soal)
-           Jika bukan iframe → user pindah ke app lain / notifikasi */
         if (iframeHasFocus) {
           updateStatus('aman');
         } else {
-          /* Tunggu sebentar: jika visibilitychange menyusul
-             dalam < SCREEN_OFF_THRESHOLD_MS, _isScreenOff()
-             akan menangkap kasus layar mati */
           updateStatus('keluar');
           addViolation('keluar');
           startEscalatingAlert();
-          startAmbulanceAlarm();
         }
       }
-      /* Jika document.hidden sudah true saat blur,
-         visibilitychange handler sudah tangani lebih dulu */
     });
 
-    /* ── window.focus ── */
     window.addEventListener('focus', () => {
       if (!monitoringActive) return;
       iframeHasFocus   = false;
@@ -1120,7 +894,6 @@
       _hiddenTimestamp = 0;
       updateStatus('aman');
       stopEscalatingAlert();
-      stopAmbulanceAlarm();
       if (_audioCtx && _audioCtx.state === 'suspended') { _audioCtx.resume().catch(() => {}); }
     });
 
@@ -1153,7 +926,6 @@
     });
   }
 
-  /* ── Matikan semua fungsi keamanan ── */
   function nonaktifkanKeamanan() {
     monitoringActive = false;
     stopEscalatingAlert();
